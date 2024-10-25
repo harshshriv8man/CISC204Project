@@ -66,6 +66,36 @@ def example_theory():
     return E
 
 
+
+
+class Rocket: 
+    def __init__(self,fuel):
+        self.fuel = fuel
+
+R = Rocket(1800) #random fuel number
+
+class Planets:
+    def __init__(self):
+        pass
+
+class PlanetCell:
+    def __init__(self):
+        pass
+
+#grid = [[0,0,0,0], [0,0,0,0], [0,R,0,0],[0,0,0,0]] #4x4 grid with coordinates (y,x) e.g R is at (3,2) - 3 down 2 across
+
+rows = int(input("Enter number of rows and coloumns (square grid): "))
+
+def create_grid(rows):
+    grid = []
+    for i in range(rows):
+        grid.append([0] * 4)
+    
+    return grid
+
+
+
+
 if __name__ == "__main__":
 
     T = example_theory()
