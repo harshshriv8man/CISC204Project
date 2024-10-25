@@ -82,11 +82,12 @@ class PlanetCell:
     def __init__(self):
         pass
 
-#grid = [[0,0,0,0], [0,0,0,0], [0,R,0,0],[0,0,0,0]] #4x4 grid with coordinates (y,x) e.g R is at (3,2) - 3 down 2 across
+#grid = [[0,0,0,0], [0,P,P,0], [0,P,P,0],[0,0,0,0]] #4x4 grid with coordinates (y,x) e.g R is at (3,2) - 3 down 2 across
 
-rows = int(input("Enter number of rows and coloumns (square grid): "))
+radius = int(input("Enter radius of planets: "))
 
-def create_grid(rows):
+def create_grid(radius):
+    rows = radius + 2
     grid = []
     for i in range(rows):
         grid.append([0] * 4)
