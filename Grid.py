@@ -90,7 +90,7 @@ def create_grid(radius):
     rows = radius + 2
     grid = []
     for i in range(rows):
-        grid.append([0] * 4)
+        grid.append([0] * rows)
     
     return grid
 
