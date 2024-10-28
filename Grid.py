@@ -95,6 +95,30 @@ def create_grid(radius):
     return grid
 
 
+b1 = True
+b2 = True
+b3 = True
+b4 = False
+b5 = False
+b6 = False
+b7 = False
+b8 = False
+fuel = True
+
+arr = [b1, b2, b3, b4, b5, b6, b7, b8]
+
+""" Subtract 1 to arr (value of fuel). If arr is filled with false (Fuel = 0) sets fuel to False and ends process, returning fuel.
+"""
+def fuel_calc():
+    for i in arr:
+        if i:
+            i = False
+            break
+        i = True
+    if (not b1 and not b2 and not b3 and not b4 and not b5 and not b6 and not b7 and not b8):
+        fuel = False
+        #TODO end process here, return result fuel
+
 
 
 if __name__ == "__main__":
