@@ -74,23 +74,33 @@ class Rocket:
 
 R = Rocket(1800) #random fuel number
 
+
+
+
 class Planets:
     def __init__(self):
         pass
 
 class PlanetCell:
-    def __init__(self):
-        pass
+    def __init__(self, P):
+        self.Pf = P #boolean for placement
 
-#grid = [[0,0,0,0], [0,P,P,0], [0,P,P,0],[0,0,0,0]] #4x4 grid with coordinates (y,x) e.g R is at (3,2) - 3 down 2 across
-
-radius = int(input("Enter radius of planets: "))
-
-def create_grid(radius):
+def create_grid(radius, planet_coord):
     rows = radius + 2
     grid = []
+
     for i in range(rows):
-        grid.append([0] * rows)
+        row = []
+        for j in range(rows):
+            row.append(PlanetCell(P=False)) #setting each to false in grid first
+        grid.append(row)
+    
+    for (x,y) in planet_coord:
+        if 0 <= x< rows and 0 <= y < rows:
+            grid[x][y].P = True #set to true given coordinates
+            
+            #TODO: Have to make sure the coordinate generating function makes sense: 
+            # For example, we cannot have a planet of radius 2 on the first row. 
     
     return grid
 
