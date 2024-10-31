@@ -63,6 +63,8 @@ def example_theory():
     # for every instance of BasicPropositions, but you want to enforce it for a, b, and c.:
     constraint.add_exactly_one(E, a, b, c)
 
+    #TODO Add while loop for each stage that goes from the start to the finish, whether it succeeds or not
+
     return E
 
 
@@ -74,17 +76,14 @@ class Rocket:
 
 R = Rocket(1800) #random fuel number
 
-
-
-
-class Planets:
-    def __init__(self):
-        pass
-
+@proposition(E)
 class PlanetCell:
     def __init__(self, P):
         self.Pf = P #boolean for placement
 
+"""
+Creates grid
+"""
 def create_grid(radius, planet_coord):
     rows = radius + 2
     grid = []
