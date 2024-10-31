@@ -47,12 +47,28 @@ y = FancyPropositions("y")
 z = FancyPropositions("z")
 
 
+#TODO Find out how to set b1-b8 to True or False
+b1 = BasicPropositions("b1")
+b2 = BasicPropositions("b2")
+b3 = BasicPropositions("b3")
+b4 = BasicPropositions("b4")
+b5 = BasicPropositions("b5")
+b6 = BasicPropositions("b6")
+b7 = BasicPropositions("b7")
+b8 = BasicPropositions("b8")
+fuel = BasicPropositions("fuel")
+
 # Build an example full theory for your setting and return it.
 #
 #  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
 def example_theory():
+
+    E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel
+
+    #TODO Remove below code before submitting
+
     # Add custom constraints by creating formulas with the variables you created. 
     E.add_constraint((a | b) & ~x)
     # Implication
@@ -104,15 +120,7 @@ def create_grid(radius, planet_coord):
     return grid
 
 
-b1 = True
-b2 = True
-b3 = True
-b4 = False
-b5 = False
-b6 = False
-b7 = False
-b8 = False
-fuel = True
+
 
 arr = [b1, b2, b3, b4, b5, b6, b7, b8]
 
@@ -139,7 +147,14 @@ if __name__ == "__main__":
     # of your model:
     print("\nSatisfiable: %s" % T.satisfiable())
     print("# Solutions: %d" % count_solutions(T))
-    print("   Solution: %s" % T.solve())
+
+    S = T.solve()
+
+    if(S):
+        print("Solution: %s" % S)
+    else:
+        print("No solution!")
+
 
     print("\nVariable likelihoods:")
     for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
