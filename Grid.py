@@ -138,11 +138,11 @@ def enter_fuel():
             arr[i] = True
         elif (num == 0):
             arr[i] = False
-        else: 
+        else:
             print("The character at index " +i+ " cannot be accepted.")
             return
-        i++
-    for j = i to 8: 
+        i += 1
+    for j in range(i, 8):
         arr[j] = False
 
 """ Subtract 1 to arr (value of fuel). If arr is filled with false (Fuel = 0) sets fuel to False and ends process, returning fuel.
