@@ -65,8 +65,8 @@ class Rocket:
 
 def fly(grid):
     assert fuel, "Rocket is out of fuel."
-
     #TODO something needs to put the rocket in the grid before it can fly
+    fuel_calc()
 
 @proposition(E)
 class PlanetCell:
