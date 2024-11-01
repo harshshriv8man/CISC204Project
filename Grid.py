@@ -9,8 +9,6 @@ config.sat_backend = "kissat"
 # Encoding that will store all of your constraints
 E = Encoding()
 
-arr = [b1, b2, b3, b4, b5, b6, b7, b8]
-
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class BasicPropositions:
@@ -31,6 +29,8 @@ b7 = BasicPropositions("b7")
 b8 = BasicPropositions("b8")
 fuel = BasicPropositions("fuel")
 
+arr = [b1, b2, b3, b4, b5, b6, b7, b8]
+
 # Build an example full theory for your setting and return it.
 #
 #  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
@@ -43,14 +43,14 @@ def example_theory():
     #TODO Remove below code before submitting
 
     # Add custom constraints by creating formulas with the variables you created. 
-    E.add_constraint((a | b) & ~x)
+    # E.add_constraint((a | b) & ~x)
     # Implication
     E.add_constraint(y >> z)
     # Negate a formula
     E.add_constraint(~(x & y))
     # You can also add more customized "fancy" constraints. Use case: you don't want to enforce "exactly one"
     # for every instance of BasicPropositions, but you want to enforce it for a, b, and c.:
-    constraint.add_exactly_one(E, a, b, c)
+    # constraint.add_exactly_one(E, a, b, c)
 
     #TODO Add while loop for each stage that goes from the start to the finish, whether it succeeds or not
 
@@ -161,11 +161,4 @@ if __name__ == "__main__":
         print("Solution: %s" % S)
     else:
         print("No solution!")
-
-
-    print("\nVariable likelihoods:")
-    for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
-        # Ensure that you only send these functions NNF formulas
-        # Literals are compiled to NNF here
-        print(" %s: %.2f" % (vn, likelihood(T, v)))
     print()
