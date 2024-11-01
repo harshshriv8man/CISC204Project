@@ -90,7 +90,12 @@ class Rocket:
     def __init__(self,fuel):
         self.fuel = fuel
 
-R = Rocket(1800) #random fuel number
+R = Rocket(1010) #arbitrary fuel number
+
+def fly(grid):
+    assert fuel, "Rocket is out of fuel."
+    
+    #TODO something needs to put the rocket in the grid before it can fly
 
 @proposition(E)
 class PlanetCell:
@@ -124,10 +129,26 @@ def create_grid(radius, planet_coord):
 
 arr = [b1, b2, b3, b4, b5, b6, b7, b8]
 
+def enter_fuel():
+    fuel_str = input("Please enter the rocket's starting fuel amount in binary, up to 8 digits.")
+    assert len(fuel_str) < 9, "Your number is more than 8 digits"
+    i = 0
+    for num in fuel.str:
+        if (num == 1):
+            arr[i] = True
+        elif (num == 0):
+            arr[i] = False
+        else: 
+            print("The character at index " +i+ " cannot be accepted.")
+            return
+        i++
+    for j = i to 8: 
+        arr[j] = False
+
 """ Subtract 1 to arr (value of fuel). If arr is filled with false (Fuel = 0) sets fuel to False and ends process, returning fuel.
 """
 def fuel_calc():
-    for i in arr:
+    for i in arr: 
         if i:
             i = False
             break
