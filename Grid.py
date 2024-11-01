@@ -9,43 +9,16 @@ config.sat_backend = "kissat"
 # Encoding that will store all of your constraints
 E = Encoding()
 
+arr = [b1, b2, b3, b4, b5, b6, b7, b8]
+
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class BasicPropositions:
-
     def __init__(self, data):
         self.data = data
 
     def _prop_name(self):
         return f"A.{self.data}"
-
-
-# Different classes for propositions are useful because this allows for more dynamic constraint creation
-# for propositions within that class. For example, you can enforce that "at least one" of the propositions
-# that are instances of this class must be true by using a @constraint decorator.
-# other options include: at most one, exactly one, at most k, and implies all.
-# For a complete module reference, see https://bauhaus.readthedocs.io/en/latest/bauhaus.html
-@constraint.at_least_one(E)
-@proposition(E)
-class FancyPropositions:
-
-    def __init__(self, data):
-        self.data = data
-
-    def _prop_name(self):
-        return f"A.{self.data}"
-
-# Call your variables whatever you want
-a = BasicPropositions("a")
-b = BasicPropositions("b")   
-c = BasicPropositions("c")
-d = BasicPropositions("d")
-e = BasicPropositions("e")
-# At least one of these will be true
-x = FancyPropositions("x")
-y = FancyPropositions("y")
-z = FancyPropositions("z")
-
 
 #TODO Find out how to set b1-b8 to True or False
 b1 = BasicPropositions("b1")
@@ -90,11 +63,9 @@ class Rocket:
     def __init__(self,fuel):
         self.fuel = fuel
 
-R = Rocket(1010) #arbitrary fuel number
-
 def fly(grid):
     assert fuel, "Rocket is out of fuel."
-    
+
     #TODO something needs to put the rocket in the grid before it can fly
 
 @proposition(E)
@@ -124,11 +95,6 @@ def create_grid(radius, planet_coord):
     
     return grid
 
-
-
-
-arr = [b1, b2, b3, b4, b5, b6, b7, b8]
-
 def enter_fuel():
     fuel_str = input("Please enter the rocket's starting fuel amount in binary, up to 8 digits.")
     assert len(fuel_str) < 9, "Your number is more than 8 digits"
@@ -142,7 +108,7 @@ def enter_fuel():
             print("The character at index " +i+ " cannot be accepted.")
             return
         i += 1
-    for j in range(i, 8):
+    for j in range(i, 8): # If the binary number entered is less than 8 digits, set the remaining binary values to false.
         arr[j] = False
 
 """ Subtract 1 to arr (value of fuel). If arr is filled with false (Fuel = 0) sets fuel to False and ends process, returning fuel.
@@ -157,7 +123,27 @@ def fuel_calc():
         fuel = False
         #TODO end process here, return result fuel
 
+# Included code as reference:
 
+# Different classes for propositions are useful because this allows for more dynamic constraint creation
+# for propositions within that class. For example, you can enforce that "at least one" of the propositions
+# that are instances of this class must be true by using a @constraint decorator.
+# other options include: at most one, exactly one, at most k, and implies all.
+# For a complete module reference, see https://bauhaus.readthedocs.io/en/latest/bauhaus.html
+@constraint.at_least_one(E)
+@proposition(E)
+class FancyPropositions:
+
+    def __init__(self, data):
+        self.data = data
+
+    def _prop_name(self):
+        return f"A.{self.data}"
+
+# At least one of these will be true
+x = FancyPropositions("x")
+y = FancyPropositions("y")
+z = FancyPropositions("z")
 
 if __name__ == "__main__":
 
