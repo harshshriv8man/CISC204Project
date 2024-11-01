@@ -4,6 +4,12 @@ Welcome to the major project for CISC/CMPE 204!
 
 Change this README.md file to summarize your project, and provide pointers to the general structure of the repository. How you organize and build things (which files, how you structure things, etc) is entirely up to you! The only things you must keep in place are what is already listed in the **Structure** section below.
 
+## Summary
+
+Given the fuel of a rocket and the radius of the orbital assist body, will the mission from the take off-body, to an orbital assist around the orbital assist body, to landing on the landing body be successful?
+
+This will be using a grid to represent space where the rocket takes up one cell and can move one cell at a time. There will be conditions that the rocket needs to meet to move to certain cells, and fuel will be used up when doing so. These conditions are split into three parts: takeoff, assist, and landing.
+
 ## Structure
 
 * `documents`: Contains folders for both of your draft and final submissions. README.md files are included in both.
