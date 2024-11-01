@@ -108,7 +108,8 @@ def enter_fuel():
             print("The character at index " +i+ " cannot be accepted.")
             return
         i += 1
-    for j in range(i, 8): # If the binary number entered is less than 8 digits, set the remaining binary values to false.
+    if (i<7):
+        for j in range(i, 8): # If the binary number entered is less than 8 digits, set the remaining binary values to false.
         arr[j] = False
 
 """ Subtract 1 to arr (value of fuel). If arr is filled with false (Fuel = 0) sets fuel to False and ends process, returning fuel.
