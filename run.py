@@ -31,6 +31,7 @@ fuel = BasicPropositions("fuel")
 
 arr = [b1, b2, b3, b4, b5, b6, b7, b8]
 RADIUS = 3
+stage = 1
 
 # Build an example full theory for your setting and return it.
 #
@@ -46,6 +47,15 @@ def example_theory():
     create_grid(3)
 
     # Loop
+    while (stage == 1):
+        pass
+
+    while (stage == 2):
+        pass
+
+    while (stage == 3):
+        pass
+    
 
     #TODO Remove below code before submitting
 
@@ -63,12 +73,12 @@ def example_theory():
 
     return E
 
-
-
 @proposition(E)
 class Rocket: 
-    def __init__(self,fuel):
+    def __init__(self, fuel, x, y):
         self.fuel = fuel
+        self.x = x
+        self.y = y
 
     def _prop_name(self):
         return f"A.{self.data}"
@@ -105,6 +115,7 @@ def create_grid(radius):
             grid[x][y].Pf = True #set to true given coordinates
             #TODO: Have to make sure the coordinate generating function makes sense: 
             # For example, we cannot have a planet of radius 2 on the first row. 
+    
     debug_print(grid) # DEBUG
     return grid
 
