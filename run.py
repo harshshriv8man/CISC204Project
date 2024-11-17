@@ -45,6 +45,8 @@ def example_theory():
     # Calculations:
     create_grid(3)
 
+    # Loop
+
     #TODO Remove below code before submitting
 
     # Add custom constraints by creating formulas with the variables you created. 
@@ -63,10 +65,13 @@ def example_theory():
 
 
 
-
+@proposition(E)
 class Rocket: 
     def __init__(self,fuel):
         self.fuel = fuel
+
+    def _prop_name(self):
+        return f"A.{self.data}"
 
 def fly(grid):
     assert fuel, "Rocket is out of fuel."
