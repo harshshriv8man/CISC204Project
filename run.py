@@ -30,6 +30,7 @@ b8 = BasicPropositions("b8")
 fuel = BasicPropositions("fuel")
 
 arr = [b1, b2, b3, b4, b5, b6, b7, b8]
+RADIUS = 3
 
 # Build an example full theory for your setting and return it.
 #
@@ -38,7 +39,11 @@ arr = [b1, b2, b3, b4, b5, b6, b7, b8]
 #  what the expectations are.
 def example_theory():
 
+    # Base constraints before calculations:
     E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel
+
+    # Calculations:
+    create_grid(3)
 
     #TODO Remove below code before submitting
 
@@ -72,11 +77,15 @@ def fly(grid):
 class PlanetCell:
     def __init__(self, P):
         self.Pf = P #boolean for placement
+    
+    def _prop_name(self):
+        return f"A.{self.data}"
 
 """
 Creates grid
 """
-def create_grid(radius, planet_coord):
+def create_grid(radius):
+    planet_coord = planet_position(radius)
     rows = radius + 2
     grid = []
 
@@ -87,13 +96,27 @@ def create_grid(radius, planet_coord):
         grid.append(row)
     
     for (x,y) in planet_coord:
-        if 0 <= x< rows and 0 <= y < rows:
-            grid[x][y].P = True #set to true given coordinates
-            
+        if 0 <= x < rows and 0 <= y < rows:
+            grid[x][y].Pf = True #set to true given coordinates
             #TODO: Have to make sure the coordinate generating function makes sense: 
             # For example, we cannot have a planet of radius 2 on the first row. 
-    
+    debug_print(grid) # DEBUG
     return grid
+
+# DEBUG Print
+def debug_print(grid):
+    for row in grid:
+        print([cell.Pf for cell in row])
+
+def planet_position(radius):
+    planet = []
+    h=0
+    for x in range(1, radius + 1):
+        for y in range(1, radius +1):
+            planet.append((x, y))
+            h += 1
+    print(planet)
+    return planet
 
 def enter_fuel():
     fuel_str = input("Please enter the rocket's starting fuel amount in binary, up to 8 digits.")
@@ -153,13 +176,13 @@ if __name__ == "__main__":
     T = T.compile()
     # After compilation (and only after), you can check some of the properties
     # of your model:
-    print("\nSatisfiable: %s" % T.satisfiable())
-    print("# Solutions: %d" % count_solutions(T))
+    # print("\nSatisfiable: %s" % T.satisfiable()) ***
+    # print("# Solutions: %d" % count_solutions(T))
 
-    S = T.solve()
+    # S = T.solve()
 
-    if(S):
-        print("Solution: %s" % S)
-    else:
-        print("No solution!")
+    # if(S):
+    #     print("Solution: %s" % S)
+    # else:
+    #     print("No solution!")
     print()
