@@ -39,15 +39,17 @@ stage = 1
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
 def example_theory():
-
     # Base constraints before calculations:
     E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel
+
+    # Ask user for initial conditions
+    enter_fuel()
 
     # Calculations:
 
     # Repeat for each grid, modified to fit each stage's needs:
-    create_grid(3)
-    
+    grid2 = create_grid(3)
+
     # TODO: Add rocket to grid
     # TODO: Add checkpoint(s) to grid
 
@@ -87,6 +89,14 @@ class Rocket:
     def _prop_name(self):
         return f"A.{self.data}"
 
+@proposition(E)
+class SpaceObject:
+    def __init__(self, P):
+        self.Pf = P
+
+    def _prop_name(self):
+        return f"A.{self.data}"
+
 def fly(grid):
     assert fuel, "Rocket is out of fuel."
     #TODO something needs to put the rocket in the grid before it can fly
@@ -101,7 +111,8 @@ class PlanetCell:
         return f"A.{self.data}"
 
 """
-Creates grid
+Creates grid given the radius of the planet held within.
+@return the grid as a 2D array with a planet with the specified radius at its center.
 """
 def create_grid(radius):
     planet_coord = planet_position(radius)
@@ -128,6 +139,15 @@ def debug_print(grid):
     for row in grid:
         print([cell.Pf for cell in row])
 
+"""
+Adds proposition object (default SpaceObject) to specified grid at location x, y.
+"""
+def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
+    if (grid[x][y].Pf == False):
+        grid[x][y] = object
+    else:
+        assert grid[x][y].Pf == True, f"Object already exists at {x}, {y}"
+
 def planet_position(radius):
     planet = []
     h=0
@@ -138,7 +158,10 @@ def planet_position(radius):
     print(planet)
     return planet
 
-def enter_fuel():
+"""
+Sets fuel to the number specified by the user.
+"""
+def enter_fuel() -> None:
     fuel_str = input("Please enter the rocket's starting fuel amount in binary, up to 8 digits.")
     assert len(fuel_str) < 9, "Your number is more than 8 digits"
     i = 0
