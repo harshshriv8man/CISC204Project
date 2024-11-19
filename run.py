@@ -44,32 +44,36 @@ def example_theory():
     E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel
 
     # Calculations:
-    create_grid(3)
 
-    # Loop
+    # Repeat for each grid, modified to fit each stage's needs:
+    create_grid(3)
+    
+    # TODO: Add rocket to grid
+    # TODO: Add checkpoint(s) to grid
+
+    # End repeat
+
     while (stage == 1):
         pass
+        # TODO: Add constraints to calculate the path, if nothing in the way should go straight right
+        # TODO: Run fuel_calc() algorithm for every cell moved
 
     while (stage == 2):
         pass
+        # TODO: Add constraints to calculate the path
+        # TODO: Based on path, need to run fuel_calc() algorithm for every cell moved
 
     while (stage == 3):
         pass
+        # TODO: Add constraints to calculate the path, if nothing in the way should go straight right
+        # TODO: Add constraint that stops path from being calculated if next cell to the right is a planet
     
 
     #TODO Remove below code before submitting
 
-    # Add custom constraints by creating formulas with the variables you created. 
-    # E.add_constraint((a | b) & ~x)
-    # Implication
-    E.add_constraint(y >> z)
-    # Negate a formula
-    E.add_constraint(~(x & y))
     # You can also add more customized "fancy" constraints. Use case: you don't want to enforce "exactly one"
     # for every instance of BasicPropositions, but you want to enforce it for a, b, and c.:
     # constraint.add_exactly_one(E, a, b, c)
-
-    #TODO Add while loop for each stage that goes from the start to the finish, whether it succeeds or not
 
     return E
 
