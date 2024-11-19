@@ -162,16 +162,16 @@ def planet_position(radius):
 Sets fuel to the number specified by the user.
 """
 def enter_fuel() -> None:
-    fuel_str = input("Please enter the rocket's starting fuel amount in binary, up to 8 digits.")
+    fuel_str = input("Please enter the rocket's starting fuel amount in binary, up to 8 digits.\n")
     assert len(fuel_str) < 9, "Your number is more than 8 digits"
     i = 0
-    for num in fuel.str:
+    for num in fuel_str:
         if (num == 1):
             arr[i] = True
         elif (num == 0):
             arr[i] = False
         else:
-            print("The character at index " +i+ " cannot be accepted.")
+            print("The character at index", i, "cannot be accepted.")
             return
         i += 1
     if (i<7):
