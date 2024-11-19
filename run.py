@@ -50,6 +50,9 @@ def example_theory():
     # Repeat for each grid, modified to fit each stage's needs:
     grid2 = create_grid(3)
 
+    add_to_grid(grid2, 0, 0, Checkpoint(True, True))
+    debug_print(grid2)
+
     # TODO: Add rocket to grid
     # TODO: Add checkpoint(s) to grid
 
@@ -69,7 +72,6 @@ def example_theory():
         pass
         # TODO: Add constraints to calculate the path, if nothing in the way should go straight right
         # TODO: Add constraint that stops path from being calculated if next cell to the right is a planet
-    
 
     #TODO Remove below code before submitting
 
@@ -93,6 +95,15 @@ class Rocket:
 class SpaceObject:
     def __init__(self, P):
         self.Pf = P
+
+    def _prop_name(self):
+        return f"A.{self.data}"
+
+@proposition(E)
+class Checkpoint:
+    def __init__(self, P, active):
+        self.Pf = P
+        self.active = active
 
     def _prop_name(self):
         return f"A.{self.data}"
@@ -137,7 +148,14 @@ def create_grid(radius):
 # DEBUG Print
 def debug_print(grid):
     for row in grid:
-        print([cell.Pf for cell in row])
+        for cell in row:
+            if (cell.Pf):
+                print("\033[32m", end="")
+            else:
+                print("\033[31m", end="")
+            print(f"{cell.Pf}, ", end="")
+        print("\b\b  ")
+    print("\033[0m")
 
 """
 Adds proposition object (default SpaceObject) to specified grid at location x, y.
