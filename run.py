@@ -1,6 +1,7 @@
 
 from bauhaus import Encoding, proposition, constraint
 from bauhaus.utils import count_solutions, likelihood
+import random
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
@@ -190,6 +191,36 @@ def planet_position(radius, stage):
     
     print(planet)
 
+def rocket_dynamics(universe, stage, radius):
+    journey = []
+    if (stage == 1):
+        grid = universe[0]
+
+        launch = random.randint(1, radius)
+        rocket = Rocket(launch, 0)
+
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
+        journey.append(rocket.get_position())
+
+        while rocket.y <= radius+1:
+            x, y = rocket.get_position()
+
+            if grid[x][y+1].Pf:
+                if x-1 >= 0 and not grid[x-1][y].Pf:
+                    rocket.move_up()
+                if x+1 <= radius + 1 and not grid[x+1][y].Pf:
+                    rocket.move_down()
+            else:
+                rocket.move_right()
+            
+            journey.append(rocket.get_position())
+            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
+            debug_print(grid)
+        
+        print("Journey Path: ")
+        for step in journey:
+            print(f"({step[0]}, {step[1]})", end=" -> ")
+        print()
 """
 Sets fuel to the number specified by the user.
 """
