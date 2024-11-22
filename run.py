@@ -166,15 +166,29 @@ def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
     else:
         assert grid[x][y].Pf == True, f"Object already exists at {x}, {y}"
 
-def planet_position(radius):
+def planet_position(radius, stage):
     planet = []
     h=0
-    for x in range(1, radius + 1):
-        for y in range(1, radius +1):
-            planet.append((x, y))
-            h += 1
+    midpoint = (radius + 2) // 2
+
+    if (stage == 1):
+        for y in range(1, radius+1):
+            planet.append((y, 0))
+        return planet
+    
+    if (stage == 2):
+        for x in range(1, radius + 1):
+            for y in range(1, radius +1):
+                planet.append((x, y))
+                h += 1
+        return planet
+    
+    if (stage == 3):
+        for y in range(1, radius+1):
+            planet.append((y, radius+1))
+        return planet
+    
     print(planet)
-    return planet
 
 """
 Sets fuel to the number specified by the user.
