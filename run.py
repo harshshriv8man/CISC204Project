@@ -57,7 +57,7 @@ def example_theory():
     universe = [grid1, grid2, grid3]
     journey = rocket_dynamics(universe, radius)
 
-    add_to_grid(grid2, 0, 0, Checkpoint(True, True))
+    add_to_grid(grid2, 0, 0, Checkpoint(P=False, active=True))
     debug_print(grid2)
 
     # TODO: Add rocket to grid
@@ -177,6 +177,12 @@ def debug_print(grid):
         for cell in row:
             if (cell.Pf):
                 print("\033[32m", end="")
+            elif (type(cell) == Checkpoint): # Cannot check Checkpoint class as it is a @proposition
+                print("I'm a checkpoint!") # DEBUG
+                if (cell.active == True):
+                    print("\033[33m", end="")
+                else:
+                    print("\033[33m", end="")
             else:
                 print("\033[31m", end="")
             print(f"{cell.Pf}, ", end="")
