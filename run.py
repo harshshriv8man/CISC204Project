@@ -66,17 +66,17 @@ def example_theory():
     # End repeat
 
     while (stage == 1):
-        pass
+        break
         # TODO: Add constraints to calculate the path, if nothing in the way should go straight right
         # TODO: Run fuel_calc() algorithm for every cell moved
 
     while (stage == 2):
-        pass
+        break
         # TODO: Add constraints to calculate the path
         # TODO: Based on path, need to run fuel_calc() algorithm for every cell moved
 
     while (stage == 3):
-        pass
+        break
         # TODO: Add constraints to calculate the path, if nothing in the way should go straight right
         # TODO: Add constraint that stops path from being calculated if next cell to the right is a planet
 
@@ -159,14 +159,30 @@ def create_grid(radius, stage):
             row.append(PlanetCell(P=False)) #setting each to false in grid first
         grid.append(row)
     
+    
     for (y,x) in planet_coord:
+        
         if 0 <= x < rows and 0 <= y < rows:
             grid[y][x].Pf = True #set to true given coordinates
             #TODO: Have to make sure the coordinate generating function makes sense: 
             # For example, we cannot have a planet of radius 2 on the first row. 
+    print("Checkpoint positions:")
+    if (stage == 2 or stage == 3):
+        print("x =", radius, end="\ny = ")
         for i in range(rows):
-            if grid[radius + 1][i].Pf == False:
-                grid[radius + 1][i] = Checkpoint() # TODO: Add different colour to print for checkpoint
+            if grid[i][radius].Pf == False:
+                grid[i][radius] = Checkpoint() # TODO: Add different colour to print for checkpoint
+                
+                print(i, end="; ")
+    else:
+        print("x =", radius + 1, end="\ny = ")
+        for i in range(rows):
+            if grid[i][radius + 1].Pf == False:
+                grid[i][radius + 1] = Checkpoint() # TODO: Add different colour to print for checkpoint
+                
+                print(i, end="; ") # DEBUG
+
+    print()
     
     debug_print(grid) # DEBUG
     return grid
@@ -318,13 +334,13 @@ if __name__ == "__main__":
     T = T.compile()
     # After compilation (and only after), you can check some of the properties
     # of your model:
-    # print("\nSatisfiable: %s" % T.satisfiable()) ***
-    # print("# Solutions: %d" % count_solutions(T))
+    print("\nSatisfiable: %s" % T.satisfiable())
+    # print("# Solutions: %d" % count_solutions(T)) # This doesn't work, produces error
 
-    # S = T.solve()
+    S = T.solve()
 
-    # if(S):
-    #     print("Solution: %s" % S)
-    # else:
-    #     print("No solution!")
+    if(S):
+        print("Solution: %s" % S)
+    else:
+        print("No solution!")
     print()
