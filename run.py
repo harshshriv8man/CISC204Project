@@ -159,9 +159,9 @@ def create_grid(radius, stage):
             row.append(PlanetCell(P=False)) #setting each to false in grid first
         grid.append(row)
     
-    for (x,y) in planet_coord:
+    for (y,x) in planet_coord:
         if 0 <= x < rows and 0 <= y < rows:
-            grid[x][y].Pf = True #set to true given coordinates
+            grid[y][x].Pf = True #set to true given coordinates
             #TODO: Have to make sure the coordinate generating function makes sense: 
             # For example, we cannot have a planet of radius 2 on the first row. 
         for i in range(rows):
@@ -187,10 +187,10 @@ def debug_print(grid):
 Adds proposition object (default SpaceObject) to specified grid at location x, y.
 """
 def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
-    if (grid[x][y].Pf == False):
-        grid[x][y] = object
+    if (grid[y][x].Pf == False):
+        grid[y][x] = object
     else:
-        assert grid[x][y].Pf == True, f"Object already exists at {x}, {y}"
+        assert grid[y][x].Pf == True, f"Object already exists at {x}, {y}"
 
 def planet_position(radius, stage):
     planet = []
@@ -205,7 +205,7 @@ def planet_position(radius, stage):
     if (stage == 2):
         for x in range(1, radius + 1):
             for y in range(1, radius +1):
-                planet.append((x, y))
+                planet.append((y, x))
                 h += 1
         return planet
     
@@ -227,20 +227,22 @@ def rocket_dynamics(universe, radius, stage=1):
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
         journey.append(get_position(rocket))
 
-        while rocket.y < radius+1:
+        debug_print(grid)
+
+        while rocket.x < radius+1:
             x, y = get_position(rocket)
 
             if grid[y][x+1].Pf:
-                if y-1 >= 0 and not grid[y-1][x].Pf:
+                if x-1 >= 0 and not grid[y-1][x].Pf:
                     move(rocket, 'x', 1)
-                if y+1 <= radius + 1 and not grid[y+1][x].Pf:
+                if x+1 <= radius + 1 and not grid[y+1][x].Pf:
                     move(rocket, 'x', -1)
+                    
             else:
                 move(rocket, 'x', 1)
+            x, y = get_position(rocket)
             
             journey.append(get_position(rocket))
-            print(x, y)
-            debug_print(grid)
             add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
             debug_print(grid)
         
