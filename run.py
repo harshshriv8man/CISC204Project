@@ -193,6 +193,7 @@ def debug_print(grid):
         for cell in row:
             if (cell.Pf):
                 print("\033[32m", end="")
+            # essentially, want the checkpoints to be non-active (yellow) until the rocket gets there
             elif (type(cell) == Checkpoint): # Cannot check Checkpoint class as it is a @proposition
                 print("I'm a checkpoint!") # DEBUG
                 if (cell.active == True):
@@ -214,6 +215,10 @@ def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
     else:
         assert grid[y][x].Pf == True, f"Object already exists at {x}, {y}"
 
+'''
+Sets the planet positions for all 3 stages. 
+@return the coordinate list (planet_coord) to be used create_grid function.
+'''
 def planet_position(radius, stage):
     planet = []
     h=0
@@ -224,6 +229,8 @@ def planet_position(radius, stage):
             planet.append((y, 0))
         return planet
     
+    #TODO Note that we can have planets of different radius in each stage. Same for now for testing purpose. 
+
     if (stage == 2):
         for x in range(1, radius + 1):
             for y in range(1, radius +1):
@@ -238,22 +245,28 @@ def planet_position(radius, stage):
     
     print(planet)
 
+'''
+Rocket dynamics function maps the moving of the rocket in all 3 stages. 
+@param universe: a list of the three grids corresponding to each stage, radius of planet, and stage starting from 1
+@return a list of tuples (coordinates) that the rocket follows as it travels
+'''
 def rocket_dynamics(universe, radius, stage=1):
     journey = []
     if (stage == 1):
-        grid = universe[0]
+        grid = universe[0] #grid 1 for stage 1
 
-        launch = (int)(radius//2)
+        launch = (int)(radius//2) # Rocket starts in the middle of the planet
         rocket = Rocket(fuel=arr, x=1, y=launch)
 
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
-        journey.append(get_position(rocket))
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True)) # add the rocket to the grid
+        journey.append(get_position(rocket)) # add initial position to map
 
         debug_print(grid)
 
-        while rocket.x < radius+1:
+        while rocket.x < radius+1: # before the rocket reaches the first checkpoints (last column of grid 1)
             x, y = get_position(rocket)
 
+            # in grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down
             if grid[y][x+1].Pf:
                 if x-1 >= 0 and not grid[y-1][x].Pf:
                     move(rocket, 'x', 1)
@@ -263,12 +276,14 @@ def rocket_dynamics(universe, radius, stage=1):
             else:
                 move(rocket, 'x', 1)
             x, y = get_position(rocket)
+
+            #TODO Figure out how to switch to stage 2/grid 2 once reaching the checkpoint (last column of grid 1)
             
             journey.append(get_position(rocket))
             add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
             debug_print(grid)
         
-        print("Journey Path: ")
+        print("Journey Path: ") #print journey coordinates of rocket
         for step in journey:
             print(f"({step[0]}, {step[1]})", end=" -> ")
         print()
