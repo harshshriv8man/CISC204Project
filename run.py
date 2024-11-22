@@ -90,25 +90,13 @@ def example_theory():
 
 @proposition(E)
 class Rocket: 
-    def init(self, fuel, x, y):
+    def __init__(self, fuel, x, y):
         self.fuel = fuel
         self.x = x
         self.y = y
 
     def _prop_name(self):
         return f"A.{self.data}"
-    
-"""
-@param Direction can be 'x' or 'y'
-"""
-def move(object, direction, amount: int):
-    if (direction == 'y'):
-        object.y += amount
-    elif (direction == 'x'):
-        object.x += amount
-
-def get_position(object):
-    return (object.x, object.y)
 
 @proposition(E)
 class SpaceObject:
@@ -143,6 +131,18 @@ class PlanetCell:
     
     def _prop_name(self):
         return f"A.{self.data}"
+
+"""
+@param Direction can be 'x' or 'y'
+"""
+def move(object, direction, amount: int):
+    if (direction == 'y'):
+        object.y += amount
+    elif (direction == 'x'):
+        object.x += amount
+
+def get_position(object):
+    return (object.x, object.y)
 
 """
 Creates grid given the radius of the planet held within.
@@ -225,20 +225,22 @@ def rocket_dynamics(universe, radius, stage=1):
         rocket = Rocket(fuel=arr, x=1, y=launch)
 
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
-        journey.append(rocket.get_position())
+        journey.append(get_position(rocket))
 
-        while rocket.y <= radius+1:
+        while rocket.y < radius+1:
             x, y = get_position(rocket)
 
-            if grid[x][y+1].Pf:
-                if x-1 >= 0 and not grid[x-1][y].Pf:
-                    move(rocket, 'y', 1)
-                if x+1 <= radius + 1 and not grid[x+1][y].Pf:
-                    move(rocket, 'y', -1)
+            if grid[y][x+1].Pf:
+                if y-1 >= 0 and not grid[y-1][x].Pf:
+                    move(rocket, 'x', 1)
+                if y+1 <= radius + 1 and not grid[y+1][x].Pf:
+                    move(rocket, 'x', -1)
             else:
                 move(rocket, 'x', 1)
             
             journey.append(get_position(rocket))
+            print(x, y)
+            debug_print(grid)
             add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
             debug_print(grid)
         
