@@ -1,7 +1,6 @@
 
 from bauhaus import Encoding, proposition, constraint
 from bauhaus.utils import count_solutions, likelihood
-import random
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
@@ -49,15 +48,10 @@ def example_theory():
     # Calculations:
 
     # Repeat for each grid, modified to fit each stage's needs:
-    radius = 3
-    grid1 = create_grid(radius, 1)
-    grid2 = create_grid(radius, 2)
-    grid3 = create_grid(radius, 3)
+    grid2 = create_grid(3)
 
-    universe = [grid1, grid2, grid3]
-    journey = rocket_dynamics(universe, radius)
-
-    add_to_grid(grid2, 0, 0, Checkpoint(True, True))
+    # Calculate where to add checkpoints for grid2
+    add_to_grid(grid2, 0, 0, Checkpoint())
     debug_print(grid2)
 
     # TODO: Add rocket to grid
@@ -89,26 +83,14 @@ def example_theory():
     return E
 
 @proposition(E)
-class Rocket: 
-    def init(self, fuel, x, y):
+class Rocket:
+    def __init__(self, fuel, x, y):
         self.fuel = fuel
         self.x = x
         self.y = y
 
     def _prop_name(self):
         return f"A.{self.data}"
-    
-"""
-@param Direction can be 'x' or 'y'
-"""
-def move(object, direction, amount: int):
-    if (direction == 'y'):
-        object.y += amount
-    elif (direction == 'x'):
-        object.x += amount
-
-def get_position(object):
-    return (object.x, object.y)
 
 @proposition(E)
 class SpaceObject:
@@ -148,8 +130,8 @@ class PlanetCell:
 Creates grid given the radius of the planet held within.
 @return the grid as a 2D array with a planet with the specified radius at its center.
 """
-def create_grid(radius, stage):
-    planet_coord = planet_position(radius, stage)
+def create_grid(radius):
+    planet_coord = planet_position(radius)
     rows = radius + 2
     grid = []
 
@@ -163,10 +145,10 @@ def create_grid(radius, stage):
         if 0 <= x < rows and 0 <= y < rows:
             grid[x][y].Pf = True #set to true given coordinates
             #TODO: Have to make sure the coordinate generating function makes sense: 
-            # For example, we cannot have a planet of radius 2 on the first row. 
-        for i in range(rows):
-            if grid[radius + 1][i].Pf == False:
-                grid[radius + 1][i] = Checkpoint() # TODO: Add different colour to print for checkpoint
+            # For example, we cannot have a planet of radius 2 on the first row.
+    for i in range(rows):
+        if grid[radius + 1][i].Pf == False:
+            grid[radius + 1][i] = Checkpoint() # TODO: Add different colour to print for checkpoint
     
     debug_print(grid) # DEBUG
     return grid
@@ -192,60 +174,15 @@ def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
     else:
         assert grid[x][y].Pf == True, f"Object already exists at {x}, {y}"
 
-def planet_position(radius, stage):
+def planet_position(radius):
     planet = []
     h=0
-    midpoint = (radius + 2) // 2
-
-    if (stage == 1):
-        for y in range(1, radius+1):
-            planet.append((y, 0))
-        return planet
-    
-    if (stage == 2):
-        for x in range(1, radius + 1):
-            for y in range(1, radius +1):
-                planet.append((x, y))
-                h += 1
-        return planet
-    
-    if (stage == 3):
-        for y in range(1, radius+1):
-            planet.append((y, radius+1))
-        return planet
-    
+    for x in range(1, radius + 1):
+        for y in range(1, radius +1):
+            planet.append((x, y))
+            h += 1
     print(planet)
-
-def rocket_dynamics(universe, radius, stage=1):
-    journey = []
-    if (stage == 1):
-        grid = universe[0]
-
-        launch = (int)(radius//2)
-        rocket = Rocket(fuel=arr, x=1, y=launch)
-
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
-        journey.append(rocket.get_position())
-
-        while rocket.y <= radius+1:
-            x, y = get_position(rocket)
-
-            if grid[x][y+1].Pf:
-                if x-1 >= 0 and not grid[x-1][y].Pf:
-                    move(rocket, 'y', 1)
-                if x+1 <= radius + 1 and not grid[x+1][y].Pf:
-                    move(rocket, 'y', -1)
-            else:
-                move(rocket, 'x', 1)
-            
-            journey.append(get_position(rocket))
-            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
-            debug_print(grid)
-        
-        print("Journey Path: ")
-        for step in journey:
-            print(f"({step[0]}, {step[1]})", end=" -> ")
-        print()
+    return planet
 
 """
 Sets fuel to the number specified by the user.
