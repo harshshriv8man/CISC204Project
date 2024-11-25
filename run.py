@@ -31,6 +31,9 @@ b8 = BasicPropositions("b8")
 fuel = BasicPropositions("fuel")
 
 arr = [b1, b2, b3, b4, b5, b6, b7, b8]
+checkpoint_positions_1 = [] # Checkpoint positions for stage 1
+checkpoint_positions_2 = [] # Checkpoint positions for stage 2
+checkpoint_positions_3 = [] # Checkpoint positions for stage 3
 RADIUS = 3
 stage = 1
 
@@ -58,8 +61,7 @@ def example_theory():
     universe = [grid1, grid2, grid3]
     journey = rocket_dynamics(universe, RADIUS)
 
-    add_to_grid(grid2, 0, 0, Checkpoint(P=False, active=True))
-    debug_print(grid2)
+    debug_print(grid2, 2)
 
     # Unused concept to calculate rocket movement and run fuel_calc() in propositional logic (all 3 while loops):
     while (stage == 1):
@@ -81,7 +83,10 @@ def example_theory():
 
 @proposition(E)
 class Rocket: 
-    def __init__(self, x, y):
+    def __init__(self, x, y, checkpoint1, checkpoint2, checkpoint3):
+        self.checkpoint1 = checkpoint1
+        self.checkpoint2 = checkpoint2
+        self.checkpoint3 = checkpoint3
         self.x = x
         self.y = y
 
@@ -92,19 +97,6 @@ class Rocket:
 class SpaceObject:
     def __init__(self, P):
         self.Pf = P
-
-    def _prop_name(self):
-        return f"A.{self.data}"
-
-"""
-Checkpoints for the rocket to reach to direct the path the rocket must take.
-@param active: True if hasn't been reached by rocket, False if rocket has interacted with its checkpoint group.
-"""
-@proposition(E)
-class Checkpoint:
-    def __init__(self, P=False, active=True):
-        self.Pf = P
-        self.active = active
 
     def _prop_name(self):
         return f"A.{self.data}"
@@ -167,41 +159,55 @@ def create_grid(radius, stage):
         print("x =", radius, end="\ny = ")
         for i in range(rows): # Places checkpoints on the far right edge of the planet in stage 2, and the cell to the left of the planet in stage 3.
             if grid[i][radius].Pf == False:
-                grid[i][radius] = Checkpoint()
-                
+                if (stage == 2):
+                    checkpoint_positions_2.append(True)
+                else:
+                    checkpoint_positions_3.append(True)
                 print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
+            else:
+                if (stage == 2):
+                    checkpoint_positions_2.append(False)
+                else:
+                    checkpoint_positions_3.append(False)
     else:
         print("x =", radius + 1, end="\ny = ")
         for i in range(rows): # Stage 1 needs to end at the end of the grid, so Checkpoints are placed there.
             if grid[i][radius + 1].Pf == False:
-                grid[i][radius + 1] = Checkpoint()
+                checkpoint_positions_1.append(True)
                 
                 print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
+            else:
+                checkpoint_positions_1.append(False)
 
     print()
     
-    debug_print(grid) # DEBUG
+    debug_print(grid, stage) # DEBUG
     return grid
 
 """
 Prints given grid such that cells containing a planet print True in green, cells with a Checkpoint print False in yellow, and everything else prints False in red.
 """
-def debug_print(grid):
+def debug_print(grid, stage: int):
+    x = 0
+    y = 0
     for row in grid:
         for cell in row:
             if (cell.Pf):
                 print("\033[32m", end="")
             # Essentially, want the checkpoints to be active (yellow) until the rocket gets there, then change to a duller colour
-            elif (type(cell) == Checkpoint): # Cannot check Checkpoint class as it is a @proposition
-                print("I'm a checkpoint!") # DEBUG
-                if (cell.active == True):
-                    print("\033[93m", end="")
-                else:
-                    print("\033[33m", end="")
+            elif (stage == 1 and x == RADIUS + 1 and checkpoint_positions_1[y]):
+                print("\033[93m", end="")
+            elif (stage == 2 and x == RADIUS  and checkpoint_positions_2[y]):
+                print("\033[93m", end="")
+            elif (stage == 3 and x == RADIUS and checkpoint_positions_3[y]):
+                print("\033[93m", end="")
             else:
                 print("\033[31m", end="")
             print(f"{cell.Pf}, ", end="")
+            x += 1
         print("\b\b  ")
+        x = 0
+        y += 1
     print("\033[0m")
 
 """
@@ -253,12 +259,12 @@ def rocket_dynamics(universe, radius, stage=1):
         grid = universe[0] # Grid 1 for stage 1
 
         launch = radius//2 # Rocket starts in the middle of the planet
-        rocket = Rocket(x=1, y=launch)
+        rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
         journey.append(get_position(rocket)) # Add initial position to map
 
-        debug_print(grid)
+        debug_print(grid, stage)
 
         while rocket.x < radius+1: # Loop until end of grid, where the stage will switch
             x, y = get_position(rocket) # Position before move
@@ -277,7 +283,7 @@ def rocket_dynamics(universe, radius, stage=1):
             journey.append(get_position(rocket))
             add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
             grid[y][x].Pf=False # Sets previous Rocket position to empty space
-            debug_print(grid)
+            debug_print(grid, stage)
         
         print("Journey Path: ") # Print the journey coordinates (path) of the rocket
         for step in journey:
