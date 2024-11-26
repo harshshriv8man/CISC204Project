@@ -255,8 +255,10 @@ Rocket dynamics function maps the moving of the rocket in all 3 stages.
 '''
 def rocket_dynamics(universe, radius, stage=1):
     journey = []
+   # ------------------------------------ STAGE 1 ------------------------------------
     if (stage == 1):
         grid = universe[0] # Grid 1 for stage 1
+        print(f"Stage:{stage}")
 
         launch = radius//2 # Rocket starts in the middle of the planet
         rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
@@ -265,30 +267,50 @@ def rocket_dynamics(universe, radius, stage=1):
         journey.append(get_position(rocket)) # Add initial position to map
 
         debug_print(grid, stage)
+        print(f"Stage:{stage}")
 
         while rocket.x < radius+1: # Loop until end of grid, where the stage will switch
             x, y = get_position(rocket) # Position before move
 
-            # In grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down
+            # In grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down    
             if grid[y][x+1].Pf:
                 if x-1 >= 0 and not grid[y-1][x].Pf:
                     move(rocket, 'y', 1)
                 elif x+1 <= radius + 1 and not grid[y+1][x].Pf:
                     move(rocket, 'y', -1)
+
             else:
                 move(rocket, 'x', 1)
 
-            #TODO Figure out how to switch to stage 2/grid 2 once reaching the Checkpoint (last column of grid 1)
-            
             journey.append(get_position(rocket))
             add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
             grid[y][x].Pf=False # Sets previous Rocket position to empty space
-            debug_print(grid, stage)
+            debug_print(grid, stage)   
+
+        x,y = get_position(rocket)
+        if x == radius + 1:
+                # Check if all the positions in the next column (x == radius) are clear (opposite of checkpoint_positions_1)
+                all_clear = False
+                for i in range(len(checkpoint_positions_1)):
+                    if checkpoint_positions_1[i] == grid[i][radius+1].Pf:  
+                        all_clear = True
+                        break
+
+                # If there are no obstacles in the next column, move to the next stage
+                if all_clear:
+                    print(f"Rocket reached the checkpoint at ({x}, {y}) in stage 1. Moving to stage 2.", end="\n")
+                    stage = 2  # Move to the next stage (stage 2) 
         
-        print("Journey Path: ") # Print the journey coordinates (path) of the rocket
+        print(f"Stage:{stage}", end="\n")
+
+        print("Journey Path: ", end="\n") # Print the journey coordinates (path) of the rocket
         for step in journey:
             print(f"({step[0]}, {step[1]})", end=" -> ")
         print()
+
+        # ------------------------------------ STAGE 2 ------------------------------------
+        if (stage == 2):
+            return
 
 """
 Sets fuel to the number specified by the user.
