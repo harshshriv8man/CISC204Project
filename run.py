@@ -34,7 +34,7 @@ arr = [b1, b2, b3, b4, b5, b6, b7, b8]
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 3
+RADIUS = 7
 stage = 1
 
 # Build an example full theory for your setting and return it.
@@ -59,7 +59,7 @@ def example_theory():
     add_to_grid(grid1, 3, RADIUS//2, SpaceObject(P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
 
     universe = [grid1, grid2, grid3]
-    journey = rocket_dynamics(universe, RADIUS)
+    journey = rocket_dynamics(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
 
     debug_print(grid2, 2)
 
@@ -140,7 +140,7 @@ stage 1 on the left, stage 2 on the right)
 """
 def create_grid(radius, stage):
     planet_coord = planet_position(radius, stage)
-    rows = radius + 2
+    rows = (int)(radius * 2)
     grid = []
 
     for i in range(rows):
@@ -158,7 +158,7 @@ def create_grid(radius, stage):
     if (stage == 2 or stage == 3):
         print("x =", radius, end="\ny = ")
         for i in range(rows): # Places checkpoints on the far right edge of the planet in stage 2, and the cell to the left of the planet in stage 3.
-            if grid[i][radius].Pf == False:
+            if grid[i][radius * 2 - 2].Pf == False:
                 if (stage == 2):
                     checkpoint_positions_2.append(True)
                 else:
@@ -172,7 +172,7 @@ def create_grid(radius, stage):
     else:
         print("x =", radius + 1, end="\ny = ")
         for i in range(rows): # Stage 1 needs to end at the end of the grid, so Checkpoints are placed there.
-            if grid[i][radius + 1].Pf == False:
+            if grid[i][(int)(radius*2) - 1].Pf == False:
                 checkpoint_positions_1.append(True)
                 
                 print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
@@ -195,11 +195,11 @@ def debug_print(grid, stage: int):
             if (cell.Pf):
                 print("\033[32m", end="")
             # Essentially, want the checkpoints to be active (yellow) until the rocket gets there, then change to a duller colour
-            elif (stage == 1 and x == RADIUS + 1 and checkpoint_positions_1[y]):
+            elif (stage == 1 and x == RADIUS*2 - 1 and checkpoint_positions_1[y]):
                 print("\033[93m", end="")
             elif (stage == 2 and x == RADIUS  and checkpoint_positions_2[y]):
                 print("\033[93m", end="")
-            elif (stage == 3 and x == RADIUS and checkpoint_positions_3[y]):
+            elif (stage == 3 and x == RADIUS*2 - 2 and checkpoint_positions_3[y]):
                 print("\033[93m", end="")
             else:
                 print("\033[31m", end="")
@@ -228,7 +228,7 @@ def planet_position(radius, stage):
     h=0
 
     if (stage == 1):
-        for y in range(1, radius+1):
+        for y in range(radius//2, radius*2 - radius//2 - radius % 2):
             planet.append((y, 0))
         return planet
     
@@ -243,7 +243,7 @@ def planet_position(radius, stage):
     
     if (stage == 3):
         for y in range(1, radius+1):
-            planet.append((y, radius+1))
+            planet.append((y, radius * 2 - 1))
         return planet
     
     print(planet)
