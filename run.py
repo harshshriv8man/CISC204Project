@@ -31,10 +31,11 @@ b8 = BasicPropositions("b8")
 fuel = BasicPropositions("fuel")
 
 arr = [b1, b2, b3, b4, b5, b6, b7, b8]
+people_positions = []
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 7
+RADIUS = 3
 stage = 1
 
 # Build an example full theory for your setting and return it.
@@ -49,17 +50,26 @@ def example_theory():
     
     # Ask user for initial conditions
     enter_fuel()
-
+    
     # Calculations:
 
     grid1 = create_grid(RADIUS, 1)
     grid2 = create_grid(RADIUS, 2)
     grid3 = create_grid(RADIUS, 3)
 
+    add_people(grid1, RADIUS)
+    add_people(grid2, RADIUS)
+    add_people(grid3, RADIUS)
+
+    # TODO: Ask the user what y,x coordinates they would like a SpaceObject to be. Loop this until they enter "stop".
+
+    # Function
+
     add_to_grid(grid1, 3, RADIUS//2, SpaceObject(P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
 
     universe = [grid1, grid2, grid3]
     journey = rocket_dynamics(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
+    # TODO: Add a loop that adds if each position is reachable based on 'journey' to E.constraints.
 
     debug_print(grid2, 2)
 
@@ -118,6 +128,16 @@ class PlanetCell:
     
     def _prop_name(self):
         return f"A.{self.data}"
+
+@proposition(E)
+class Person:
+    def __init__(self, P, x, y):
+        self.Pf = P
+        self.x = x
+        self.y = y
+    
+    def _prop_name(self):
+        return f"Person at ({self.y}, {self.x}) (y, x)"
 
 """
 @param Direction can be 'x' or 'y'
@@ -218,6 +238,21 @@ def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
         grid[y][x] = object
     else:
         assert grid[y][x].Pf == True, f"Object already exists at {x}, {y}"
+
+def add_people(grid, radius):
+    x = 0
+    y = 0
+    a = 0
+    positions = people_positions
+    while (x < radius*2):
+        while (y < radius*2):
+            if ((a % 3 == 0 and (a-2) % 2 == 0 and ((a*2) // 3) % 3 == 0) or ((a // 5 + 1) % 2 == 0 and a % 5 == 0)): # Non-specific consistant pattern to add people to grid
+                add_to_grid(grid, x, y, Person(True, x, y))
+                positions.append((y, x))
+            y += 1
+            a += 1
+        y = 0
+        x += 1
 
 '''
 Sets the planet positions for all 3 stages. 
