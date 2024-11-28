@@ -1,7 +1,6 @@
 
 from bauhaus import Encoding, proposition, constraint
 from bauhaus.utils import count_solutions, likelihood
-import random
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
@@ -35,7 +34,7 @@ people_positions = []
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 3
+RADIUS = 4
 stage = 1
 
 # Build an example full theory for your setting and return it.
@@ -57,9 +56,13 @@ def example_theory():
     grid2 = create_grid(RADIUS, 2)
     grid3 = create_grid(RADIUS, 3)
 
-    add_people(grid1, RADIUS)
-    add_people(grid2, RADIUS)
-    add_people(grid3, RADIUS)
+    add_people(grid1, RADIUS, 1)
+    add_people(grid2, RADIUS, 2)
+    add_people(grid3, RADIUS, 3)
+
+    # debug_print(grid1, 1)
+    # debug_print(grid2, 2)
+    # debug_print(grid3, 3)
 
     # TODO: Ask the user what y,x coordinates they would like a SpaceObject to be. Loop this until they enter "stop".
 
@@ -68,7 +71,35 @@ def example_theory():
     add_to_grid(grid1, 3, RADIUS//2, SpaceObject(P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
 
     universe = [grid1, grid2, grid3]
-    rocket_stage_3(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
+    journey = rocket_stage_3(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
+
+    current_stage = 1
+    reachable1 = []
+    reachable2 = []
+    reachable3 = []
+    for position in journey:
+        if (position == (-1, -1)):
+            current_stage += 1
+        elif current_stage == 1:
+            reachable1.append(position)
+            for x in range(3):
+                for y in range(3):
+                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, 1))
+        elif current_stage == 2:
+            reachable2.append(position)
+            for x in range(3):
+                for y in range(3):
+                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, 2))
+        else:
+            reachable3.append(position)
+            for x in range(3):
+                for y in range(3):
+                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, 3))
+
+    beacons = [Beacon(0, 0, 1), Beacon(0, 1, 1), Beacon(0, 2, 1), Beacon(0, 3, 1), Beacon(0, 4, 1), Beacon(0, 5, 1), Beacon(0, 6, 1)] # Temporary
+    
+    constraint.add_at_most_k(E, 6, beacons) # Arbitrarily chosen to get 6 beacons across all three grids
+
     # TODO: Add a loop that adds if each position is reachable based on 'journey' to E.constraints.
 
     # Unused concept to calculate rocket movement and run fuel_calc() in propositional logic (all 3 while loops):
@@ -88,6 +119,17 @@ def example_theory():
         # TODO: Add constraint that stops path from being calculated if next cell to the right is a planet
 
     return E
+
+
+@proposition(E)
+class Beacon:
+    def __init__(self, x, y, grid: int):
+        self.x = x
+        self.y = y
+        self.grid = grid
+
+    def _prop_name(self):
+        return f"({self.y}, {self.x}) is a beacon.\n" # (y, x) format
 
 @proposition(E)
 class Rocket: 
@@ -109,13 +151,15 @@ class SpaceObject:
     def _prop_name(self):
         return f"A.{self.data}"
 
-"""
-Currently unused and unfinished function.
-"""
-def fly(grid):
-    assert fuel, "Rocket is out of fuel."
-    #TODO something needs to put the rocket in the grid before it can fly
-    fuel_calc()
+@proposition(E)
+class Reachable:
+    def __init__(self, x, y, grid: int):
+        self.x = x
+        self.y = y
+        self.grid = grid
+
+    def _prop_name(self):
+        return f"({self.y}, {self.x}) is reachable." # (y, x) format
 
 @proposition(E)
 class PlanetCell:
@@ -129,8 +173,9 @@ class PlanetCell:
 
 @proposition(E)
 class Person:
-    def __init__(self, P, x, y):
-        self.Pf = P
+    def __init__(self, T, x, y, P=False):
+        self.Pf = P # Kill this later
+        self.T = T # T for translucent
         self.x = x
         self.y = y
     
@@ -210,18 +255,27 @@ def debug_print(grid, stage: int):
     y = 0
     for row in grid:
         for cell in row:
-            if (cell.Pf):
-                print("\033[32m", end="")
-            # Essentially, want the checkpoints to be active (yellow) until the rocket gets there, then change to a duller colour
-            elif (stage == 1 and x == RADIUS*2 - 1 and checkpoint_positions_1[y]):
-                print("\033[93m", end="")
-            elif (stage == 2 and x == RADIUS  and checkpoint_positions_2[y]):
-                print("\033[93m", end="")
-            elif (stage == 3 and x == RADIUS*2 - 2 and checkpoint_positions_3[y]):
-                print("\033[93m", end="")
+            if (y, x, stage) in people_positions:
+                print("\033[36m", end="")
+                print(" True, ", end="")
             else:
-                print("\033[31m", end="")
-            print(f"{cell.Pf}, ", end="")
+                if (cell.Pf):
+                    print("\033[32m", end="")
+                # Essentially, want the checkpoints to be active (yellow) until the rocket gets there, then change to a duller colour
+                elif (stage == 1 and x == RADIUS*2 - 1 and checkpoint_positions_1[y]):
+                    print("\033[93m", end="")
+                elif (stage == 2 and x == RADIUS  and checkpoint_positions_2[y]):
+                    print("\033[93m", end="")
+                elif (stage == 3 and x == RADIUS*2 - 2 and checkpoint_positions_3[y]):
+                    print("\033[93m", end="")
+
+                else:
+                    print("\033[31m", end="")
+                if (cell.Pf):
+                    print(f" {cell.Pf}, ", end="")
+                else:
+                    print(f"{cell.Pf}, ", end="")
+                
             x += 1
         print("\b\b  ")
         x = 0
@@ -234,19 +288,21 @@ Adds proposition object (default SpaceObject) to specified grid at location x, y
 def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
     if (grid[y][x].Pf == False):
         grid[y][x] = object
+        return True
     else:
         assert grid[y][x].Pf == True, f"Object already exists at {x}, {y}"
+        return False
 
-def add_people(grid, radius):
+def add_people(grid, radius, stage):
     x = 0
     y = 0
     a = 0
-    positions = people_positions
     while (x < radius*2):
         while (y < radius*2):
             if ((a % 3 == 0 and (a-2) % 2 == 0 and ((a*2) // 3) % 3 == 0) or ((a // 5 + 1) % 2 == 0 and a % 5 == 0)): # Non-specific consistant pattern to add people to grid
-                add_to_grid(grid, x, y, Person(True, x, y))
-                positions.append((y, x))
+                occupied = add_to_grid(grid, x, y, Person(True, x, y))
+                if (occupied):
+                    people_positions.append((y, x, stage))
             y += 1
             a += 1
         y = 0
