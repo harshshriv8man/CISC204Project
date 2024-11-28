@@ -71,8 +71,6 @@ def example_theory():
     rocket_stage_3(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
     # TODO: Add a loop that adds if each position is reachable based on 'journey' to E.constraints.
 
-    debug_print(grid2, 2)
-
     # Unused concept to calculate rocket movement and run fuel_calc() in propositional logic (all 3 while loops):
     while (stage == 1):
         break
@@ -448,7 +446,7 @@ def rocket_stage_3(universe, radius, stage=3):
     print("Journey Path: ", end="\n") # Print the journey coordinates (path) of the rocket
     for step in journey:
         print(f"({step[0]}, {step[1]})", end=" -> ")
-    print()   
+    print("End of journey!")   
     
     return journey
 
