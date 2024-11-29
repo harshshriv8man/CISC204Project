@@ -34,7 +34,7 @@ people_positions = [] # (y, x, stage)
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 2
+RADIUS = 3
 BEACON_RANGE = 1
 stage = 1
 
@@ -109,6 +109,7 @@ def example_theory():
     # Determine if a person is within a beacon's reachability.
     reach = []
     for i in people_positions:
+        # TODO: Add constraint such that people_positions are invalid locations for beacons
         for x in range(BEACON_RANGE * 2 + 1):
             for y in range(BEACON_RANGE * 2 + 1):
                 if (i[0] - BEACON_RANGE + y >= 0 and i[1] - BEACON_RANGE + x >= 0):
@@ -129,21 +130,22 @@ def example_theory():
     # Add constraint 
 
     # Beacon constraints:
-    # TODO: Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
-    # TODO: Beacon cannot be one cell away from a planet (diagonals okay).
+
+    # Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
+
+    # TODO: Beacon must be placed within reachability.
+
+    # TODO: Beacon cannot be one cell away from a planet (diagonals okay). Maybe not this
+
     # TODO: Beacon cannot be on a planet.
 
-    # TODO: Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon)
+    # TODO: Beacon cannot be on a person.
 
-
-    # If person saved, 
-
-
+    # TODO: Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon) -- Look at photo
+    # Go out by radius * 2, if there are no people within that range, change nothing. If there are, the overlap of radii can have a beacon, so the places on the focused person
+    # that do not have overlap cannot have a beacon.
 
     # For all Planet(x, y, grid) >> ~ Beacon(x, y, grid)
-
-    # TODO: Beacon cannot be on a person.
-    # TODO: Crazy good optimization constraint here.
     
     constraint.add_at_most_k(E, 6, beacons) # Arbitrarily chosen to get 6 beacons across all three grids
     print("added final constraint")
