@@ -34,7 +34,7 @@ people_positions = [] # (y, x, stage)
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 3
+RADIUS = 2
 BEACON_RANGE = 1
 stage = 1
 
@@ -45,7 +45,7 @@ stage = 1
 #  what the expectations are.
 def example_theory():
     # Base constraints before calculations:
-    E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel.
+    # E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel.
     # E.add_constraint((b1 | b2 | b3 | b4 | b5 | b6 | b7 | b8) >> fuel) # If fuel > 0, there is fuel. Currently creates unsolvable solution error if added.
     
     # Ask user for initial conditions
@@ -115,8 +115,8 @@ def example_theory():
                     reach.append((i[0] - BEACON_RANGE + y, i[1] - BEACON_RANGE + x, i[2])) # (y, x, stage)
     print("\n",reach)
 
+    # A beacon can't save no people (If no people are inside its radius, there cannot be a Beacon there)
     not_beacon = []
-    
     for i in reach:
         for grid in range(3):
             for y in range(RADIUS*2):
@@ -125,9 +125,6 @@ def example_theory():
                         not_beacon.append((y, x, grid + 1))
                         E.add_constraint(~Beacon(x, y, grid + 1))
 
-    print(not_beacon)
-
-
     # If it is, add to list of compatible beacon and person
     # Add constraint 
 
@@ -135,8 +132,9 @@ def example_theory():
     # TODO: Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
     # TODO: Beacon cannot be one cell away from a planet (diagonals okay).
     # TODO: Beacon cannot be on a planet.
-    # TODO: Beacon can't save no people.
+
     # TODO: Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon)
+
 
     # If person saved, 
 
