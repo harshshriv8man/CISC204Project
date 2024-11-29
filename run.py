@@ -68,7 +68,7 @@ def example_theory():
 
     # Function
 
-    add_to_grid(grid1, 3, RADIUS//2, SpaceObject(P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
+    add_to_grid(grid1, 3, RADIUS//2, SpaceObject( 3, RADIUS//2, grid1, P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
 
     universe = [grid1, grid2, grid3]
     journey = rocket_stage_3(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
@@ -101,7 +101,7 @@ def example_theory():
         for x in range(RADIUS * 2):
             for y in range(RADIUS * 2):
                 E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid))
-                E.add_constraint(Person())
+                E.add_constraint(Person(True, x, y, grid))
                 beacons.append(Beacon(x, y, grid + 1)) # Makes every possible beacon position
 
     # Beacon constraints:
@@ -163,6 +163,9 @@ class Rocket:
 @proposition(E)
 class SpaceObject:
     def __init__(self, x, y, grid, P):
+        self.x = x
+        self.y = y
+        self.grid = grid
         self.Pf = P
 
     def _prop_name(self):
@@ -189,7 +192,7 @@ class PlanetCell:
         self.grid = grid
     
     def _prop_name(self):
-        return f"A.{self.data}"
+        return f"A.{self.x}, {self.y}, {self.grid}"
 
 @proposition(E)
 class Person:
@@ -306,7 +309,8 @@ def debug_print(grid, stage: int):
 """
 Adds proposition object (default SpaceObject) to specified grid at location x, y.
 """
-def add_to_grid(grid, x: int, y: int, object=SpaceObject(P=True)) -> None:
+def add_to_grid(grid, x: int, y: int, object=SpaceObject(0, 0, 1, P=True)) -> None:
+    object = SpaceObject(x, y, grid, P=True) # Changes immediately.
     if (grid[y][x].Pf == False):
         grid[y][x] = object
         return True
@@ -321,7 +325,7 @@ def add_people(grid, radius, stage):
     while (x < radius*2):
         while (y < radius*2):
             if ((a % 3 == 0 and (a-2) % 2 == 0 and ((a*2) // 3) % 3 == 0) or ((a // 5 + 1) % 2 == 0 and a % 5 == 0)): # Non-specific consistant pattern to add people to grid
-                occupied = add_to_grid(grid, x, y, Person(True, x, y))
+                occupied = add_to_grid(grid, x, y, Person(True, x, y, grid))
                 if (occupied):
                     people_positions.append((y, x, stage))
             y += 1
@@ -372,7 +376,7 @@ def rocket_stage_1(universe, radius, stage=1):
         launch = radius//2 # Rocket starts in the middle of the planet
         rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
         journey.append(get_position(rocket)) # Add initial position to map
 
         debug_print(grid, stage)
@@ -392,7 +396,7 @@ def rocket_stage_1(universe, radius, stage=1):
                 move(rocket, 'x', 1)
 
             journey.append(get_position(rocket))
-            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
+            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
             grid[y][x].Pf=False # Sets previous Rocket position to empty space
             debug_print(grid, stage)   
 
@@ -428,7 +432,7 @@ def rocket_stage_2(universe, radius, stage=2):
     start_x, start_y = 0, radius + 1
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=start_x, y=start_y)
 
-    add_to_grid(grid,rocket.x,rocket.y,SpaceObject(P=True))
+    add_to_grid(grid,rocket.x,rocket.y,SpaceObject(rocket.x, rocket.y, grid, P=True))
     journey.append(get_position(rocket))
     debug_print(grid,stage)
 
@@ -444,7 +448,7 @@ def rocket_stage_2(universe, radius, stage=2):
             move(rocket, 'x', -1)
 
         journey.append(get_position(rocket))  # Update journey with new position
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))  # Visualize rocket in grid
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid,P=True))  # Visualize rocket in grid
         grid[y][x].Pf = False  # Clear previous rocket position
         debug_print(grid, stage)
 
@@ -454,13 +458,13 @@ def rocket_stage_2(universe, radius, stage=2):
 
         if rocket.x == 0 and rocket.y == 0:  # End condition, when we reach (0, 0)
             journey.append(get_position(rocket))  # Update journey with new position
-            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))  # Visualize rocket in grid
+            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))  # Visualize rocket in grid
             grid[y][x].Pf = False  # Clear previous rocket position
             debug_print(grid, stage)
             break
 
         journey.append(get_position(rocket))  # Update journey with new position
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))  # Visualize rocket in grid
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))  # Visualize rocket in grid
         grid[y][x].Pf = False  # Clear previous rocket position
         debug_print(grid, stage)
 
@@ -481,7 +485,7 @@ def rocket_stage_3(universe, radius, stage=3):
     launch = radius//2 # Rocket starts in the middle of the planet
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
-    add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
+    add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
     journey.append(get_position(rocket)) # Add initial position to map
 
     debug_print(grid, stage)
@@ -500,7 +504,7 @@ def rocket_stage_3(universe, radius, stage=3):
             move(rocket, 'x', 1)
 
         journey.append(get_position(rocket))
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(P=True))
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
         grid[y][x].Pf=False # Sets previous Rocket position to empty space
         debug_print(grid, stage)   
 
