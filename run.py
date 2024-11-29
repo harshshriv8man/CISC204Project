@@ -35,7 +35,7 @@ checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
 RADIUS = 3
-BEACON_RANGE = 2
+BEACON_RANGE = 1
 stage = 1
 
 # Build an example full theory for your setting and return it.
