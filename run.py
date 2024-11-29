@@ -34,7 +34,7 @@ people_positions = []
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 4
+RADIUS = 3
 stage = 1
 
 # Build an example full theory for your setting and return it.
@@ -52,9 +52,9 @@ def example_theory():
     
     # Calculations:
 
-    grid1 = create_grid(RADIUS, 1)
-    grid2 = create_grid(RADIUS, 2)
-    grid3 = create_grid(RADIUS, 3)
+    (grid1, planet_pos1) = create_grid(RADIUS, 1)
+    (grid2, planet_pos2) = create_grid(RADIUS, 2)
+    (grid3, planet_pos3) = create_grid(RADIUS, 3)
 
     add_people(grid1, RADIUS, 1)
     add_people(grid2, RADIUS, 2)
@@ -95,10 +95,28 @@ def example_theory():
             for x in range(3):
                 for y in range(3):
                     E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, 3))
+    
+    beacons = []
+    for grid in range(3):
+        for x in range(RADIUS * 2):
+            for y in range(RADIUS * 2):
+                E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid))
+                E.add_constraint(Person())
+                beacons.append(Beacon(x, y, grid + 1)) # Makes every possible beacon position
 
-    beacons = [Beacon(0, 0, 1), Beacon(0, 1, 1), Beacon(0, 2, 1), Beacon(0, 3, 1), Beacon(0, 4, 1), Beacon(0, 5, 1), Beacon(0, 6, 1)] # Temporary
+    # Beacon constraints:
+    # TODO: Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
+    # TODO: Beacon cannot be one cell away from a planet (diagonals okay).
+    # TODO: Beacon cannot be on a planet.
+
+
+    # For all Planet(x, y, grid) >> ~ Beacon(x, y, grid)
+
+    # TODO: Beacon cannot be on a person.
+    # TODO: Crazy good optimization constraint here.
     
     constraint.add_at_most_k(E, 6, beacons) # Arbitrarily chosen to get 6 beacons across all three grids
+    print("added final constraint")
 
     # TODO: Add a loop that adds if each position is reachable based on 'journey' to E.constraints.
 
@@ -119,7 +137,6 @@ def example_theory():
         # TODO: Add constraint that stops path from being calculated if next cell to the right is a planet
 
     return E
-
 
 @proposition(E)
 class Beacon:
@@ -145,7 +162,7 @@ class Rocket:
 
 @proposition(E)
 class SpaceObject:
-    def __init__(self, P):
+    def __init__(self, x, y, grid, P):
         self.Pf = P
 
     def _prop_name(self):
@@ -163,21 +180,25 @@ class Reachable:
 
 @proposition(E)
 class PlanetCell:
-    def __init__(self, P):
+    def __init__(self, x, y, grid: int, P):
         # Pf indicates if the rocket cannot pass into the object (i.e. Rocket cannot crash into a planet, Pf=True implies object. 
         # Pf=False also can imply nothing is there, with the exception of Checkpoints).
         self.Pf = P
+        self.x = x
+        self.y = y
+        self.grid = grid
     
     def _prop_name(self):
         return f"A.{self.data}"
 
 @proposition(E)
 class Person:
-    def __init__(self, T, x, y, P=False):
+    def __init__(self, T, x, y, grid, P=False):
         self.Pf = P # Kill this later
         self.T = T # T for translucent
         self.x = x
         self.y = y
+        self.grid = grid
     
     def _prop_name(self):
         return f"Person at ({self.y}, {self.x}) (y, x)"
@@ -209,7 +230,7 @@ def create_grid(radius, stage):
     for i in range(rows):
         row = []
         for j in range(rows):
-            row.append(PlanetCell(P=False)) #setting each to false in grid first
+            row.append(PlanetCell(i, j, stage, P=False)) #setting each to false in grid first
         grid.append(row)
     
     
@@ -245,7 +266,7 @@ def create_grid(radius, stage):
     print()
     
     debug_print(grid, stage) # DEBUG
-    return grid
+    return (grid, planet_coord)
 
 """
 Prints given grid such that cells containing a planet print True in green, cells with a Checkpoint print False in yellow, and everything else prints False in red.
