@@ -30,11 +30,12 @@ b8 = BasicPropositions("b8")
 fuel = BasicPropositions("fuel")
 
 arr = [b1, b2, b3, b4, b5, b6, b7, b8]
-people_positions = []
+people_positions = [] # (y, x, stage)
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
 RADIUS = 3
+BEACON_RANGE = 2
 stage = 1
 
 # Build an example full theory for your setting and return it.
@@ -101,13 +102,44 @@ def example_theory():
         for x in range(RADIUS * 2):
             for y in range(RADIUS * 2):
                 E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid))
-                E.add_constraint(Person(True, x, y, grid))
+                # E.add_constraint(Person(x, y, grid))
+                # E.add_constraint(Beacon(x, y, grid) >> Person(x, y, grid))
                 beacons.append(Beacon(x, y, grid + 1)) # Makes every possible beacon position
+    
+    # Determine if a person is within a beacon's reachability.
+    reach = []
+    for i in people_positions:
+        for x in range(BEACON_RANGE * 2 + 1):
+            for y in range(BEACON_RANGE * 2 + 1):
+                if (i[0] - BEACON_RANGE + y >= 0 and i[1] - BEACON_RANGE + x >= 0):
+                    reach.append((i[0] - BEACON_RANGE + y, i[1] - BEACON_RANGE + x, i[2])) # (y, x, stage)
+    print("\n",reach)
+
+    not_beacon = []
+    
+    for i in reach:
+        for grid in range(3):
+            for y in range(RADIUS*2):
+                for x in range(RADIUS*2):
+                    if (y, x, grid + 1) not in reach:
+                        not_beacon.append((y, x, grid + 1))
+                        E.add_constraint(~Beacon(x, y, grid + 1))
+
+    print(not_beacon)
+
+
+    # If it is, add to list of compatible beacon and person
+    # Add constraint 
 
     # Beacon constraints:
     # TODO: Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
     # TODO: Beacon cannot be one cell away from a planet (diagonals okay).
     # TODO: Beacon cannot be on a planet.
+    # TODO: Beacon can't save no people.
+    # TODO: Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon)
+
+    # If person saved, 
+
 
 
     # For all Planet(x, y, grid) >> ~ Beacon(x, y, grid)
@@ -196,7 +228,7 @@ class PlanetCell:
 
 @proposition(E)
 class Person:
-    def __init__(self, T, x, y, grid, P=False):
+    def __init__(self, x, y, grid, P=False, T=True):
         self.Pf = P # Kill this later
         self.T = T # T for translucent
         self.x = x
@@ -325,7 +357,7 @@ def add_people(grid, radius, stage):
     while (x < radius*2):
         while (y < radius*2):
             if ((a % 3 == 0 and (a-2) % 2 == 0 and ((a*2) // 3) % 3 == 0) or ((a // 5 + 1) % 2 == 0 and a % 5 == 0)): # Non-specific consistant pattern to add people to grid
-                occupied = add_to_grid(grid, x, y, Person(True, x, y, grid))
+                occupied = add_to_grid(grid, x, y, Person(x, y, grid))
                 if (occupied):
                     people_positions.append((y, x, stage))
             y += 1
