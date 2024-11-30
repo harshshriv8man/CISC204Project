@@ -69,7 +69,8 @@ def example_theory():
 
     # Function
 
-    add_to_grid(grid1, 3, RADIUS//2, SpaceObject( 3, RADIUS//2, grid1, P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
+    add_to_grid(grid1, 3, RADIUS//2, SpaceObject(3, RADIUS//2, grid1, P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
+    E.add_constraint(SpaceObject(3, RADIUS//2, grid1, P=True)) # Remember to do this when making functionality for the user to add SpaceObjects.
 
     universe = [grid1, grid2, grid3]
     journey = rocket_stage_3(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
@@ -101,7 +102,10 @@ def example_theory():
     for grid in range(3):
         for x in range(RADIUS * 2):
             for y in range(RADIUS * 2):
-                E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid))
+                # Beacon cannot be on a planet or a SpaceObject with P=True.
+                E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid)) # DEBUG: Test to see if these constraints work.
+                E.add_constraint(SpaceObject(x, y, grid, True) >> ~Beacon(x, y, grid))
+
                 # E.add_constraint(Person(x, y, grid))
                 # E.add_constraint(Beacon(x, y, grid) >> Person(x, y, grid))
                 beacons.append(Beacon(x, y, grid + 1)) # Makes every possible beacon position
@@ -136,8 +140,6 @@ def example_theory():
     # TODO: Beacon must be placed within reachability.
 
     # TODO: Beacon cannot be one cell away from a planet (diagonals okay). Maybe not this
-
-    # TODO: Beacon cannot be on a planet.
 
     # TODO: Beacon cannot be on a person.
 
@@ -265,14 +267,16 @@ def create_grid(radius, stage):
     for i in range(rows):
         row = []
         for j in range(rows):
-            row.append(PlanetCell(i, j, stage, P=False)) #setting each to false in grid first
+            row.append(PlanetCell(i, j, stage, P=False)) # Setting entire grid to a false PlanetCell to represent empty space first
         grid.append(row)
     
     
     for (y,x) in planet_coord:
         
+        # Put a planet in the empty space (grid)
         if 0 <= x < rows and 0 <= y < rows:
             grid[y][x].Pf = True # Grid's order is in [y][x] to improve spacial locality as movement in the x axis is more common.
+            E.add_constraint(PlanetCell(x, y, stage, True))
     print("Checkpoint positions:")
     if (stage == 2 or stage == 3):
         print("x =", radius, end="\ny = ")
@@ -339,10 +343,12 @@ def debug_print(grid, stage: int):
     print("\033[0m")
 
 """
-Adds proposition object (default SpaceObject) to specified grid at location x, y.
+Adds proposition object (default SpaceObject(x, y, grid, P=True), set within function) to specified grid at location x, y.
 """
-def add_to_grid(grid, x: int, y: int, object=SpaceObject(0, 0, 1, P=True)) -> None:
-    object = SpaceObject(x, y, grid, P=True) # Changes immediately.
+def add_to_grid(grid, x: int, y: int, object=SpaceObject(-1, -1, -1, P=True)) -> None:
+    # To set default SpaceObject using given x, y, grid values (can't use the x, y, grid values in the parameters)
+    if object == SpaceObject(-1, -1, -1, True):
+        object = SpaceObject(x, y, grid, P=True)
     if (grid[y][x].Pf == False):
         grid[y][x] = object
         return True
