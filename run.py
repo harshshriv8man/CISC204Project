@@ -34,7 +34,7 @@ people_positions = [] # (y, x, stage)
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 3
+RADIUS = 2
 BEACON_RANGE = 1
 stage = 1
 
@@ -170,6 +170,7 @@ def example_theory():
     
     constraint.add_at_most_k(E, 6, beacons) # Arbitrarily chosen to get 6 beacons across all three grids
     print("added final constraint")
+    return E
 
 
 @proposition(E)
@@ -427,10 +428,14 @@ def rocket_stage_1(universe, radius, stage=1):
             # In grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down    
             if grid[y][x+1].P:
                 if x-1 >= 0 and not grid[y-1][x].P:
-                    move(rocket, 'y', -1)
-                elif x+1 <= radius + 1 and not grid[y+1][x].P:
                     move(rocket, 'y', 1)
-                elif not grid[y+1][x+1] or not grid[y-1][x+1]:
+                    if y == int(radius*2)-1:
+                        move(rocket, 'y', 1)
+                elif x+1 <= radius + 1 and not grid[y+1][x].P:
+                    move(rocket, 'y', -1)
+                    if y == 0:
+                        move(rocket, 'y', -1)
+                elif not grid[y+1][x+1] or not grid[y-1][x+1]: #checking diagonals in case sandwiched
                     move(rocket, 'x',-1)
                     move(rocket,'y',1)
             else:
@@ -455,6 +460,7 @@ def rocket_stage_1(universe, radius, stage=1):
                 if all_clear:
                     print(f"Rocket reached the checkpoint at ({x}, {y}) in stage 1. Moving to stage 2.", end="\n")
                     stage = 2  # Move to the next stage (stage 2) 
+
         
         print(f"Stage:{stage}", end="\n")
 
