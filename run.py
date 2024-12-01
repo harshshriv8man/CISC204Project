@@ -48,9 +48,6 @@ def example_theory():
     # E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel.
     # E.add_constraint((b1 | b2 | b3 | b4 | b5 | b6 | b7 | b8) >> fuel) # If fuel > 0, there is fuel. Currently creates unsolvable solution error if added.
     
-    # Ask user for initial conditions
-    enter_fuel()
-    
     # Calculations:
 
     grid1 = create_grid(RADIUS, 1)
@@ -69,8 +66,13 @@ def example_theory():
 
     # Function
 
-    add_to_grid(grid1, 3, RADIUS//2, SpaceObject(3, RADIUS//2, grid1, P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
-    E.add_constraint(SpaceObject(3, RADIUS//2, grid1, P=True)) # Remember to do this when making functionality for the user to add SpaceObjects.
+    add_to_grid(grid1, 3, RADIUS//2, SpaceObject(3, RADIUS//2, 1, P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
+    E.add_constraint(SpaceObject(3, RADIUS//2, 1, P=True)) # Remember to do this when making functionality for the user to add SpaceObjects.
+
+    # Ask user for initial conditions
+    enter_fuel()
+    print()
+    (grid1, grid2, grid3) = enter_space_objects(grid1, grid2, grid3)
 
     universe = [grid1, grid2, grid3]
     journey = rocket_stage_3(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
@@ -160,7 +162,7 @@ def example_theory():
             for x in range(BEACON_RANGE * 2 + 1):
                 for y in range(BEACON_RANGE * 2 + 1):
                     if ((self_pos[0] - BEACON_RANGE + y, self_pos[1] - BEACON_RANGE + x, self_pos[2]) not in conjunct_pos):
-                        E.add_constraint(~Beacon(x, y, position[2]))
+                        E.add_constraint(~Beacon(x, y, self_pos[2]))
 
     # Implied Beacon constraints:
 
@@ -198,10 +200,10 @@ class SpaceObject:
         self.x = x
         self.y = y
         self.grid = grid
-        self.Pf = P
+        self.P = P
 
     def _prop_name(self):
-        return f"A.{self.data}"
+        return f"Space Object at ({self.y}, {self.x}, {self.grid}), P={self.P}"
 
 @proposition(E)
 class Reachable:
@@ -216,20 +218,20 @@ class Reachable:
 @proposition(E)
 class PlanetCell:
     def __init__(self, x, y, grid: int, P):
-        # Pf indicates if the rocket cannot pass into the object (i.e. Rocket cannot crash into a planet, Pf=True implies object. 
-        # Pf=False also can imply nothing is there, with the exception of Checkpoints).
-        self.Pf = P
+        # P indicates if the rocket cannot pass into the object (i.e. Rocket cannot crash into a planet, P=True implies object. 
+        # P=False also can imply nothing is there, with the exception of Checkpoints).
+        self.P = P
         self.x = x
         self.y = y
         self.grid = grid
     
     def _prop_name(self):
-        return f"A.{self.x}, {self.y}, {self.grid}"
+        return f"At ({self.y}, {self.x}, {self.grid})"
 
 @proposition(E)
 class Person:
     def __init__(self, x, y, grid, P=False, T=True):
-        self.Pf = P # Kill this later
+        self.P = P # Kill this later
         self.T = T # T for translucent
         self.x = x
         self.y = y
@@ -273,13 +275,13 @@ def create_grid(radius, stage):
         
         # Put a planet in the empty space (grid)
         if 0 <= x < rows and 0 <= y < rows:
-            grid[y][x].Pf = True # Grid's order is in [y][x] to improve spacial locality as movement in the x axis is more common.
+            grid[y][x].P = True # Grid's order is in [y][x] to improve spacial locality as movement in the x axis is more common.
             E.add_constraint(PlanetCell(x, y, stage, True))
     print("Checkpoint positions:")
     if (stage == 2 or stage == 3):
         print("x =", radius, end="\ny = ")
         for i in range(rows): # Places checkpoints on the far right edge of the planet in stage 2, and the cell to the left of the planet in stage 3.
-            if grid[i][radius * 2 - 2].Pf == False:
+            if grid[i][radius * 2 - 2].P == False:
                 if (stage == 2):
                     checkpoint_positions_2.append(True)
                 else:
@@ -293,7 +295,7 @@ def create_grid(radius, stage):
     else:
         print("x =", radius + 1, end="\ny = ")
         for i in range(rows): # Stage 1 needs to end at the end of the grid, so Checkpoints are placed there.
-            if grid[i][(int)(radius*2) - 1].Pf == False:
+            if grid[i][(int)(radius*2) - 1].P == False:
                 checkpoint_positions_1.append(True)
                 
                 print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
@@ -317,7 +319,7 @@ def debug_print(grid, stage: int):
                 print("\033[36m", end="")
                 print(" True, ", end="")
             else:
-                if (cell.Pf):
+                if (cell.P):
                     print("\033[32m", end="")
                 # Essentially, want the checkpoints to be active (yellow) until the rocket gets there, then change to a duller colour
                 elif (stage == 1 and x == RADIUS*2 - 1 and checkpoint_positions_1[y]):
@@ -329,10 +331,10 @@ def debug_print(grid, stage: int):
 
                 else:
                     print("\033[31m", end="")
-                if (cell.Pf):
-                    print(f" {cell.Pf}, ", end="")
+                if (cell.P):
+                    print(f" {cell.P}, ", end="")
                 else:
-                    print(f"{cell.Pf}, ", end="")
+                    print(f"{cell.P}, ", end="")
                 
             x += 1
         print("\b\b  ")
@@ -343,15 +345,15 @@ def debug_print(grid, stage: int):
 """
 Adds proposition object (default SpaceObject(x, y, grid, P=True), set within function) to specified grid at location x, y.
 """
-def add_to_grid(grid, x: int, y: int, object=SpaceObject(-1, -1, -1, P=True)) -> None:
+def add_to_grid(grid, x: int, y: int, object=SpaceObject(-1, -1, -1, P=True)) -> bool:
     # To set default SpaceObject using given x, y, grid values (can't use the x, y, grid values in the parameters)
     if object == SpaceObject(-1, -1, -1, True):
         object = SpaceObject(x, y, grid, P=True)
-    if (grid[y][x].Pf == False):
+    if (grid[y][x].P == False):
         grid[y][x] = object
         return True
     else:
-        assert grid[y][x].Pf == True, f"Object already exists at {x}, {y}"
+        assert grid[y][x].P == True, f"Object already exists at {x}, {y}"
         return False
 
 def add_people(grid, radius, stage):
@@ -423,10 +425,10 @@ def rocket_stage_1(universe, radius, stage=1):
             x, y = get_position(rocket) # Position before move
 
             # In grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down    
-            if grid[y][x+1].Pf:
-                if x-1 >= 0 and not grid[y-1][x].Pf:
+            if grid[y][x+1].P:
+                if x-1 >= 0 and not grid[y-1][x].P:
                     move(rocket, 'y', 1)
-                elif x+1 <= radius + 1 and not grid[y+1][x].Pf:
+                elif x+1 <= radius + 1 and not grid[y+1][x].P:
                     move(rocket, 'y', -1)
 
             else:
@@ -434,7 +436,7 @@ def rocket_stage_1(universe, radius, stage=1):
 
             journey.append(get_position(rocket))
             add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
-            grid[y][x].Pf=False # Sets previous Rocket position to empty space
+            grid[y][x].P=False # Sets previous Rocket position to empty space
             debug_print(grid, stage)   
 
         x,y = get_position(rocket)
@@ -443,7 +445,7 @@ def rocket_stage_1(universe, radius, stage=1):
                 # Check if all the positions in the next column (x == radius) are clear (opposite of checkpoint_positions_1)
                 all_clear = False
                 for i in range(len(checkpoint_positions_1)):
-                    if checkpoint_positions_1[i] == grid[i][int(radius*2)-1].Pf:  
+                    if checkpoint_positions_1[i] == grid[i][int(radius*2)-1].P:  
                         all_clear = True
                         break
 
@@ -486,7 +488,7 @@ def rocket_stage_2(universe, radius, stage=2):
 
         journey.append(get_position(rocket))  # Update journey with new position
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid,P=True))  # Visualize rocket in grid
-        grid[y][x].Pf = False  # Clear previous rocket position
+        grid[y][x].P = False  # Clear previous rocket position
         debug_print(grid, stage)
 
     while rocket.y == 0:
@@ -496,13 +498,13 @@ def rocket_stage_2(universe, radius, stage=2):
         if rocket.x == 0 and rocket.y == 0:  # End condition, when we reach (0, 0)
             journey.append(get_position(rocket))  # Update journey with new position
             add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))  # Visualize rocket in grid
-            grid[y][x].Pf = False  # Clear previous rocket position
+            grid[y][x].P = False  # Clear previous rocket position
             debug_print(grid, stage)
             break
 
         journey.append(get_position(rocket))  # Update journey with new position
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))  # Visualize rocket in grid
-        grid[y][x].Pf = False  # Clear previous rocket position
+        grid[y][x].P = False  # Clear previous rocket position
         debug_print(grid, stage)
 
     print(f"Stage:{stage} Complete!")
@@ -532,17 +534,17 @@ def rocket_stage_3(universe, radius, stage=3):
         x, y = get_position(rocket) # Position before move
 
         # In grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down    
-        if grid[y][x+1].Pf:
-            if x-1 >= 0 and not grid[y-1][x].Pf:
+        if grid[y][x+1].P:
+            if x-1 >= 0 and not grid[y-1][x].P:
                 move(rocket, 'y', 1)
-            elif x+1 <= radius + 1 and not grid[y+1][x].Pf:
+            elif x+1 <= radius + 1 and not grid[y+1][x].P:
                 move(rocket, 'y', -1)
         else:
             move(rocket, 'x', 1)
 
         journey.append(get_position(rocket))
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
-        grid[y][x].Pf=False # Sets previous Rocket position to empty space
+        grid[y][x].P=False # Sets previous Rocket position to empty space
         debug_print(grid, stage)   
 
         x,y = get_position(rocket)
@@ -551,7 +553,7 @@ def rocket_stage_3(universe, radius, stage=3):
             # Check if all the positions in the next column (x == radius) are clear (opposite of checkpoint_positions_1)
             all_clear = False
             for i in range(len(checkpoint_positions_1)):
-                if checkpoint_positions_1[i] == grid[i][int(radius*2)-1].Pf:  
+                if checkpoint_positions_1[i] == grid[i][int(radius*2)-1].P:  
                     all_clear = True
                     break
 
@@ -591,6 +593,34 @@ def enter_fuel() -> None:
             arr[j] = False
     print(arr)
 
+def enter_space_objects(grid1, grid2, grid3) -> tuple:
+    complete = False
+    print("Please enter the position of a SpaceObject in the format 'y, x, grid'.\nSpaceObjects on people, planets, or the starting position of the rocket will not be accepted.\nType 'stop' to continue with currently set SpaceObjects.")
+    while not complete:
+        SpaceObject_str = input("\n")
+        if (SpaceObject_str != "stop"):
+            SpaceObject_list = SpaceObject_str.split(", ")
+            if (SpaceObject_list[0].isdigit() and SpaceObject_list[1].isdigit() and SpaceObject_list[2].isdigit()
+                and (int)(SpaceObject_list[0]) > -1 and (int)(SpaceObject_list[0]) < RADIUS * 2 
+                and (int)(SpaceObject_list[1]) > -1 and (int)(SpaceObject_list[1]) < RADIUS * 2
+                and (int)(SpaceObject_list[2]) < 4 and (int)(SpaceObject_list[2]) > 0):
+                    success = False
+                    if (int)(SpaceObject_list[2]) == 1:
+                        success = add_to_grid(grid1, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    elif (int)(SpaceObject_list[2]) == 2:
+                        success = add_to_grid(grid2, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    elif (int)(SpaceObject_list[2]) == 3:
+                        success = add_to_grid(grid3, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    print(f"Adding SpaceObject to ({SpaceObject_list[0]}, {SpaceObject_list[1]}, {SpaceObject_list[2]})", end=" ")
+                    if (success):
+                        print("succeeded.")
+                    else:
+                        print("failed.")
+            else:
+                print("Invalid format.")
+        else:
+            complete = True
+    return (grid1, grid2, grid3)
 """ Subtract 1 to arr (value of fuel). If arr is filled with false (Fuel = 0) sets fuel to False and ends process, returning fuel.
 """
 def fuel_calc():
