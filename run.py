@@ -54,15 +54,15 @@ def example_theory():
     grid2 = create_grid(RADIUS, 2)
     grid3 = create_grid(RADIUS, 3)
 
-    print("Adding people...\n")
-
     add_people(grid1, RADIUS, 1)
     add_people(grid2, RADIUS, 2)
     add_people(grid3, RADIUS, 3)
 
-    debug_print(grid1, 1)
-    debug_print(grid2, 2)
-    debug_print(grid3, 3)
+    # debug_print(grid1, 1)
+    # debug_print(grid2, 2)
+    # debug_print(grid3, 3)
+
+    # TODO: Ask the user what y,x coordinates they would like a SpaceObject to be. Loop this until they enter "stop".
 
     # Function
 
@@ -82,7 +82,6 @@ def example_theory():
     # Determine Rocket reachability.
     current_stage = 1
     reachable = [] # (y, x, grid)
-    beacons = []
     for position in journey:
         if (position == (-1, -1)):
             current_stage += 1
@@ -90,16 +89,16 @@ def example_theory():
             for x in range(3):
                 for y in range(3):
                     reachable.append((position[0] - 1 + y, position[1] - 1 + x, current_stage))
-                    beacons.append(Beacon(x, y, current_stage)) # Makes every possible reachable Beacon position (less calculations than every possible Beacon position)
                     E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, current_stage))
 
-
+    # TODO: If (y, x, grid) position is not within reachability, Beacon cannot be placed there
+    
     # A Beacon can't be on other objects
 
+    beacons = []
     for grid in range(3):
         for x in range(RADIUS * 2):
             for y in range(RADIUS * 2):
-
                 # Beacon must be within Rocket reachability
                 if ((y, x, grid) not in reachable):
                     E.add_constraint(~Beacon(x, y, grid))
@@ -109,7 +108,8 @@ def example_theory():
                 E.add_constraint(SpaceObject(x, y, grid, True) >> ~Beacon(x, y, grid))
                 E.add_constraint(Person(x, y, grid) >> ~Beacon(x, y, grid))
 
-
+                beacons.append(Beacon(x, y, grid + 1)) # Makes every possible beacon position
+    
     # Determine if a person is within a beacon's reachability.
 
     reach = []
@@ -119,7 +119,6 @@ def example_theory():
                 if (i[0] - BEACON_RANGE + y >= 0 and i[1] - BEACON_RANGE + x >= 0):
                     reach.append((i[0] - BEACON_RANGE + y, i[1] - BEACON_RANGE + x, i[2])) # (y, x, stage)
     print("\n",reach)
-
 
     # A beacon can't save no people (If no people are inside its radius, there cannot be a Beacon there)
 
@@ -131,7 +130,6 @@ def example_theory():
                     if (y, x, grid + 1) not in reach:
                         not_beacon.append((y, x, grid + 1))
                         E.add_constraint(~Beacon(x, y, grid + 1))
-
 
     # Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon)
     # Summary: Go out by radius * 2, if there are no people within that range, change nothing. If there are, the overlap of radii can have a beacon, so the places on the
@@ -166,15 +164,12 @@ def example_theory():
                     if ((self_pos[0] - BEACON_RANGE + y, self_pos[1] - BEACON_RANGE + x, self_pos[2]) not in conjunct_pos):
                         E.add_constraint(~Beacon(x, y, self_pos[2]))
 
-
     # Implied Beacon constraints:
 
     # Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
     
-    constraint.add_at_most_k(E, 6, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
+    constraint.add_at_most_k(E, 6, beacons) # Arbitrarily chosen to get 6 beacons across all three grids
     print("added final constraint")
-    
-    return E
 
 
 @proposition(E)
@@ -291,7 +286,7 @@ def create_grid(radius, stage):
                     checkpoint_positions_2.append(True)
                 else:
                     checkpoint_positions_3.append(True)
-                print(i, end="; ") # DEBUG (Shows y position of current Checkpoint) *** Currently sets checkpoints in planet 2?
+                print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
             else:
                 if (stage == 2):
                     checkpoint_positions_2.append(False)
@@ -417,7 +412,7 @@ def rocket_stage_1(universe, radius, stage=1):
         grid = universe[0] # Grid 1 for stage 1
         print(f"Stage:{stage}")
 
-        launch = radius - 1 # Rocket starts in the middle of the planet
+        launch = radius//2 # Rocket starts in the middle of the planet
         rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
@@ -432,10 +427,12 @@ def rocket_stage_1(universe, radius, stage=1):
             # In grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down    
             if grid[y][x+1].P:
                 if x-1 >= 0 and not grid[y-1][x].P:
-                    move(rocket, 'y', 1)
-                elif x+1 <= radius + 1 and not grid[y+1][x].P:
                     move(rocket, 'y', -1)
-
+                elif x+1 <= radius + 1 and not grid[y+1][x].P:
+                    move(rocket, 'y', 1)
+                elif not grid[y+1][x+1] or not grid[y-1][x+1]:
+                    move(rocket, 'x',-1)
+                    move(rocket,'y',1)
             else:
                 move(rocket, 'x', 1)
 
@@ -526,7 +523,7 @@ def rocket_stage_3(universe, radius, stage=3):
     grid = universe[2] # Grid 3 for stage 3
     print(f"Stage:{stage}")
 
-    launch = radius - 1 # Rocket starts in the middle of the planet
+    launch = radius//2 # Rocket starts in the middle of the planet
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
     add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
@@ -605,24 +602,19 @@ def enter_space_objects(grid1, grid2, grid3) -> tuple:
         SpaceObject_str = input("\n")
         if (SpaceObject_str != "stop"):
             SpaceObject_list = SpaceObject_str.split(", ")
-            if (len(SpaceObject_list) == 3 and SpaceObject_list[0].isdigit() and SpaceObject_list[1].isdigit() and SpaceObject_list[2].isdigit()):
-                y = (int)(SpaceObject_list[0])
-                x = (int)(SpaceObject_list[1])
-                stage = (int)(SpaceObject_list[2])
-                if (y > -1 and y < RADIUS * 2 and x > -1 and x < RADIUS * 2 and stage < 4 and stage > 0):
+            if (SpaceObject_list[0].isdigit() and SpaceObject_list[1].isdigit() and SpaceObject_list[2].isdigit()
+                and (int)(SpaceObject_list[0]) > -1 and (int)(SpaceObject_list[0]) < RADIUS * 2 
+                and (int)(SpaceObject_list[1]) > -1 and (int)(SpaceObject_list[1]) < RADIUS * 2
+                and (int)(SpaceObject_list[2]) < 4 and (int)(SpaceObject_list[2]) > 0):
                     success = False
-                    if stage == 1:
-                        if (grid1[y][x].P == False and (y, x, stage) not in people_positions and (y, x) != (RADIUS - 1, 1)):
-                            success = add_to_grid(grid1, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
-                    elif stage == 2:
-                        if (grid2[y][x].P == False and (y, x, stage) not in people_positions and (y, x) != (RADIUS, 0)):
-                            success = add_to_grid(grid2, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
-                    else:
-                        if (grid3[y][x].P == False and (y, x, stage) not in people_positions and (y, x) != (RADIUS - 1, 0)):
-                            success = add_to_grid(grid3, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    if (int)(SpaceObject_list[2]) == 1:
+                        success = add_to_grid(grid1, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    elif (int)(SpaceObject_list[2]) == 2:
+                        success = add_to_grid(grid2, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    elif (int)(SpaceObject_list[2]) == 3:
+                        success = add_to_grid(grid3, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
                     print(f"Adding SpaceObject to ({SpaceObject_list[0]}, {SpaceObject_list[1]}, {SpaceObject_list[2]})", end=" ")
                     if (success):
-                        E.add_constraint(SpaceObject(x, y, stage, True))
                         print("succeeded.")
                     else:
                         print("failed.")
