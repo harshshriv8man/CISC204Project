@@ -53,9 +53,9 @@ def example_theory():
     
     # Calculations:
 
-    (grid1, planet_pos1) = create_grid(RADIUS, 1)
-    (grid2, planet_pos2) = create_grid(RADIUS, 2)
-    (grid3, planet_pos3) = create_grid(RADIUS, 3)
+    grid1 = create_grid(RADIUS, 1)
+    grid2 = create_grid(RADIUS, 2)
+    grid3 = create_grid(RADIUS, 3)
 
     add_people(grid1, RADIUS, 1)
     add_people(grid2, RADIUS, 2)
@@ -75,29 +75,24 @@ def example_theory():
     universe = [grid1, grid2, grid3]
     journey = rocket_stage_3(universe, RADIUS) # Array of tuples of every rocket position along its path through every stage.
 
+    # Main constraints:
+
+    # Determine Rocket reachability.
     current_stage = 1
-    reachable1 = []
-    reachable2 = []
-    reachable3 = []
+    reachable = [] # (y, x, grid)
     for position in journey:
         if (position == (-1, -1)):
             current_stage += 1
-        elif current_stage == 1:
-            reachable1.append(position)
-            for x in range(3):
-                for y in range(3):
-                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, 1))
-        elif current_stage == 2:
-            reachable2.append(position)
-            for x in range(3):
-                for y in range(3):
-                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, 2))
         else:
-            reachable3.append(position)
             for x in range(3):
                 for y in range(3):
-                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, 3))
+                    reachable.append((position[0] - 1 + y, position[1] - 1 + x, current_stage))
+                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, current_stage))
+
+    # TODO: If (y, x, grid) position is not within reachability, Beacon cannot be placed there
     
+    # A Beacon can't be on other objects
+
     beacons = []
     for grid in range(3):
         for x in range(RADIUS * 2):
@@ -105,15 +100,14 @@ def example_theory():
                 # Beacon cannot be on a planet or a SpaceObject with P=True.
                 E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid)) # DEBUG: Test to see if these constraints work.
                 E.add_constraint(SpaceObject(x, y, grid, True) >> ~Beacon(x, y, grid))
+                E.add_constraint(Person(x, y, grid) >> ~Beacon(x, y, grid))
 
-                # E.add_constraint(Person(x, y, grid))
-                # E.add_constraint(Beacon(x, y, grid) >> Person(x, y, grid))
                 beacons.append(Beacon(x, y, grid + 1)) # Makes every possible beacon position
     
     # Determine if a person is within a beacon's reachability.
+
     reach = []
     for i in people_positions:
-        # TODO: Add constraint such that people_positions are invalid locations for beacons
         for x in range(BEACON_RANGE * 2 + 1):
             for y in range(BEACON_RANGE * 2 + 1):
                 if (i[0] - BEACON_RANGE + y >= 0 and i[1] - BEACON_RANGE + x >= 0):
@@ -121,6 +115,7 @@ def example_theory():
     print("\n",reach)
 
     # A beacon can't save no people (If no people are inside its radius, there cannot be a Beacon there)
+
     not_beacon = []
     for i in reach:
         for grid in range(3):
@@ -130,47 +125,46 @@ def example_theory():
                         not_beacon.append((y, x, grid + 1))
                         E.add_constraint(~Beacon(x, y, grid + 1))
 
-    # If it is, add to list of compatible beacon and person
-    # Add constraint 
+    # Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon)
+    # Summary: Go out by radius * 2, if there are no people within that range, change nothing. If there are, the overlap of radii can have a beacon, so the places on the
+    # focused person that do not have overlap cannot have a beacon.
 
-    # Beacon constraints:
+    for a in range(len(people_positions)):
+        self_pos = people_positions[a]
+        conjunct_pos = []
+        for b in range(len(people_positions)):
+            other_pos = people_positions[b]
+
+            # Early check to lower average computation
+            if (self_pos != other_pos and self_pos[2] == other_pos[2] # If not the same person, if in the same grid
+            and other_pos[0] >= self_pos[0] - BEACON_RANGE * 2 and other_pos[0] <= self_pos[0] + BEACON_RANGE * 2 # If y range overlaps
+            and other_pos[1] >= self_pos[1] - BEACON_RANGE * 2 and other_pos[1] <= self_pos[1] + BEACON_RANGE * 2 # If x range overlaps
+            ):
+                # Find location(s) of conjunction(s)
+                for x_self in range(BEACON_RANGE * 2 + 1):
+                    for y_self in range(BEACON_RANGE * 2 + 1):
+                        for x in range(BEACON_RANGE * 2 + 1):
+                            for y in range(BEACON_RANGE * 2 + 1):
+                                if (other_pos[1] - BEACON_RANGE + x == self_pos[1] - BEACON_RANGE + x_self # What x value overlaps?
+                                and other_pos[0] - BEACON_RANGE + y == self_pos[0] - BEACON_RANGE + y_self # What y value overlaps?
+                                ):
+                                    if((self_pos[0] - BEACON_RANGE + y_self, self_pos[1] - BEACON_RANGE + x_self, self_pos[2]) in reachable):
+                                        conjunct_pos.append((self_pos[0] - BEACON_RANGE + y_self, self_pos[1] - BEACON_RANGE + x_self, self_pos[2]))
+
+        # If there is a conjunction, set all non-conjunction cells relative to self_pos to ~Beacon(...)
+        if len(conjunct_pos) != 0:
+            for x in range(BEACON_RANGE * 2 + 1):
+                for y in range(BEACON_RANGE * 2 + 1):
+                    if ((self_pos[0] - BEACON_RANGE + y, self_pos[1] - BEACON_RANGE + x, self_pos[2]) not in conjunct_pos):
+                        E.add_constraint(~Beacon(x, y, position[2]))
+
+    # Implied Beacon constraints:
 
     # Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
-
-    # TODO: Beacon must be placed within reachability.
-
-    # TODO: Beacon cannot be one cell away from a planet (diagonals okay). Maybe not this
-
-    # TODO: Beacon cannot be on a person.
-
-    # TODO: Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon) -- Look at photo
-    # Go out by radius * 2, if there are no people within that range, change nothing. If there are, the overlap of radii can have a beacon, so the places on the focused person
-    # that do not have overlap cannot have a beacon.
-
-    # For all Planet(x, y, grid) >> ~ Beacon(x, y, grid)
     
     constraint.add_at_most_k(E, 6, beacons) # Arbitrarily chosen to get 6 beacons across all three grids
     print("added final constraint")
 
-    # TODO: Add a loop that adds if each position is reachable based on 'journey' to E.constraints.
-
-    # Unused concept to calculate rocket movement and run fuel_calc() in propositional logic (all 3 while loops):
-    while (stage == 1):
-        break
-        # TODO: Add constraints to calculate the path, if nothing in the way should go straight right
-        # TODO: Run fuel_calc() algorithm for every cell moved
-
-    while (stage == 2):
-        break
-        # TODO: Add constraints to calculate the path
-        # TODO: Based on path, need to run fuel_calc() algorithm for every cell moved
-
-    while (stage == 3):
-        break
-        # TODO: Add constraints to calculate the path, if nothing in the way should go straight right
-        # TODO: Add constraint that stops path from being calculated if next cell to the right is a planet
-
-    return E
 
 @proposition(E)
 class Beacon:
@@ -180,7 +174,7 @@ class Beacon:
         self.grid = grid
 
     def _prop_name(self):
-        return f"({self.y}, {self.x}) is a beacon.\n" # (y, x) format
+        return f"Beacon at ({self.y}, {self.x}).\n" # (y, x) format
 
 @proposition(E)
 class Rocket: 
@@ -305,7 +299,7 @@ def create_grid(radius, stage):
     print()
     
     debug_print(grid, stage) # DEBUG
-    return (grid, planet_coord)
+    return grid
 
 """
 Prints given grid such that cells containing a planet print True in green, cells with a Checkpoint print False in yellow, and everything else prints False in red.
@@ -363,8 +357,9 @@ def add_people(grid, radius, stage):
     while (x < radius*2):
         while (y < radius*2):
             if ((a % 3 == 0 and (a-2) % 2 == 0 and ((a*2) // 3) % 3 == 0) or ((a // 5 + 1) % 2 == 0 and a % 5 == 0)): # Non-specific consistant pattern to add people to grid
-                occupied = add_to_grid(grid, x, y, Person(x, y, grid))
-                if (occupied):
+                not_occupied = add_to_grid(grid, x, y, Person(x, y, grid))
+                if (not_occupied):
+                    E.add_constraint(Person(x, y, stage))
                     people_positions.append((y, x, stage))
             y += 1
             a += 1
