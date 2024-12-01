@@ -54,9 +54,15 @@ def example_theory():
     grid2 = create_grid(RADIUS, 2)
     grid3 = create_grid(RADIUS, 3)
 
+    print("Adding people...\n")
+
     add_people(grid1, RADIUS, 1)
     add_people(grid2, RADIUS, 2)
     add_people(grid3, RADIUS, 3)
+
+    debug_print(grid1, 1)
+    debug_print(grid2, 2)
+    debug_print(grid3, 3)
 
     # debug_print(grid1, 1)
     # debug_print(grid2, 2)
@@ -286,7 +292,7 @@ def create_grid(radius, stage):
                     checkpoint_positions_2.append(True)
                 else:
                     checkpoint_positions_3.append(True)
-                print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
+                print(i, end="; ") # DEBUG (Shows y position of current Checkpoint) *** Currently sets checkpoints in planet 2?
             else:
                 if (stage == 2):
                     checkpoint_positions_2.append(False)
@@ -412,7 +418,7 @@ def rocket_stage_1(universe, radius, stage=1):
         grid = universe[0] # Grid 1 for stage 1
         print(f"Stage:{stage}")
 
-        launch = radius//2 # Rocket starts in the middle of the planet
+        launch = radius - 1 # Rocket starts in the middle of the planet
         rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
@@ -521,7 +527,7 @@ def rocket_stage_3(universe, radius, stage=3):
     grid = universe[2] # Grid 3 for stage 3
     print(f"Stage:{stage}")
 
-    launch = radius//2 # Rocket starts in the middle of the planet
+    launch = radius - 1 # Rocket starts in the middle of the planet
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
     add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
@@ -600,17 +606,21 @@ def enter_space_objects(grid1, grid2, grid3) -> tuple:
         SpaceObject_str = input("\n")
         if (SpaceObject_str != "stop"):
             SpaceObject_list = SpaceObject_str.split(", ")
-            if (SpaceObject_list[0].isdigit() and SpaceObject_list[1].isdigit() and SpaceObject_list[2].isdigit()
-                and (int)(SpaceObject_list[0]) > -1 and (int)(SpaceObject_list[0]) < RADIUS * 2 
-                and (int)(SpaceObject_list[1]) > -1 and (int)(SpaceObject_list[1]) < RADIUS * 2
-                and (int)(SpaceObject_list[2]) < 4 and (int)(SpaceObject_list[2]) > 0):
+            if (len(SpaceObject_list) == 3 and SpaceObject_list[0].isdigit() and SpaceObject_list[1].isdigit() and SpaceObject_list[2].isdigit()):
+                y = (int)(SpaceObject_list[0])
+                x = (int)(SpaceObject_list[1])
+                stage = (int)(SpaceObject_list[2])
+                if (y > -1 and y < RADIUS * 2 and x > -1 and x < RADIUS * 2 and stage < 4 and stage > 0):
                     success = False
-                    if (int)(SpaceObject_list[2]) == 1:
-                        success = add_to_grid(grid1, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
-                    elif (int)(SpaceObject_list[2]) == 2:
-                        success = add_to_grid(grid2, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
-                    elif (int)(SpaceObject_list[2]) == 3:
-                        success = add_to_grid(grid3, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    if stage == 1:
+                        if (grid1[y][x].P == False and (y, x, stage) not in people_positions and (y, x) != (RADIUS - 1, 1)):
+                            success = add_to_grid(grid1, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    elif stage == 2:
+                        if (grid2[y][x].P == False and (y, x, stage) not in people_positions and (y, x) != (RADIUS, 0)):
+                            success = add_to_grid(grid2, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
+                    else:
+                        if (grid3[y][x].P == False and (y, x, stage) not in people_positions and (y, x) != (RADIUS - 1, 0)):
+                            success = add_to_grid(grid3, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
                     print(f"Adding SpaceObject to ({SpaceObject_list[0]}, {SpaceObject_list[1]}, {SpaceObject_list[2]})", end=" ")
                     if (success):
                         print("succeeded.")
