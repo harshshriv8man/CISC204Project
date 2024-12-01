@@ -173,6 +173,8 @@ def example_theory():
     
     constraint.add_at_most_k(E, 6, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
     print("added final constraint")
+    
+    return E
 
 
 @proposition(E)
