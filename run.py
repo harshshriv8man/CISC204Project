@@ -64,12 +64,6 @@ def example_theory():
     debug_print(grid2, 2)
     debug_print(grid3, 3)
 
-    # debug_print(grid1, 1)
-    # debug_print(grid2, 2)
-    # debug_print(grid3, 3)
-
-    # TODO: Ask the user what y,x coordinates they would like a SpaceObject to be. Loop this until they enter "stop".
-
     # Function
 
     add_to_grid(grid1, 3, RADIUS//2, SpaceObject(3, RADIUS//2, 1, P=True)) # Adds asteroid to demonstrate rocket avoidance proceedure.
@@ -88,6 +82,7 @@ def example_theory():
     # Determine Rocket reachability.
     current_stage = 1
     reachable = [] # (y, x, grid)
+    beacons = []
     for position in journey:
         if (position == (-1, -1)):
             current_stage += 1
@@ -95,16 +90,16 @@ def example_theory():
             for x in range(3):
                 for y in range(3):
                     reachable.append((position[0] - 1 + y, position[1] - 1 + x, current_stage))
+                    beacons.append(Beacon(x, y, current_stage)) # Makes every possible reachable Beacon position (less calculations than every possible Beacon position)
                     E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, current_stage))
 
-    # TODO: If (y, x, grid) position is not within reachability, Beacon cannot be placed there
-    
+
     # A Beacon can't be on other objects
 
-    beacons = []
     for grid in range(3):
         for x in range(RADIUS * 2):
             for y in range(RADIUS * 2):
+
                 # Beacon must be within Rocket reachability
                 if ((y, x, grid) not in reachable):
                     E.add_constraint(~Beacon(x, y, grid))
@@ -114,8 +109,7 @@ def example_theory():
                 E.add_constraint(SpaceObject(x, y, grid, True) >> ~Beacon(x, y, grid))
                 E.add_constraint(Person(x, y, grid) >> ~Beacon(x, y, grid))
 
-                beacons.append(Beacon(x, y, grid + 1)) # Makes every possible beacon position
-    
+
     # Determine if a person is within a beacon's reachability.
 
     reach = []
@@ -125,6 +119,7 @@ def example_theory():
                 if (i[0] - BEACON_RANGE + y >= 0 and i[1] - BEACON_RANGE + x >= 0):
                     reach.append((i[0] - BEACON_RANGE + y, i[1] - BEACON_RANGE + x, i[2])) # (y, x, stage)
     print("\n",reach)
+
 
     # A beacon can't save no people (If no people are inside its radius, there cannot be a Beacon there)
 
@@ -136,6 +131,7 @@ def example_theory():
                     if (y, x, grid + 1) not in reach:
                         not_beacon.append((y, x, grid + 1))
                         E.add_constraint(~Beacon(x, y, grid + 1))
+
 
     # Beacon must save at least 1 more person (if one person is saved by a beacon, they cannot be the only person saved by a different beacon)
     # Summary: Go out by radius * 2, if there are no people within that range, change nothing. If there are, the overlap of radii can have a beacon, so the places on the
@@ -170,11 +166,12 @@ def example_theory():
                     if ((self_pos[0] - BEACON_RANGE + y, self_pos[1] - BEACON_RANGE + x, self_pos[2]) not in conjunct_pos):
                         E.add_constraint(~Beacon(x, y, self_pos[2]))
 
+
     # Implied Beacon constraints:
 
     # Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
     
-    constraint.add_at_most_k(E, 6, beacons) # Arbitrarily chosen to get 6 beacons across all three grids
+    constraint.add_at_most_k(E, 6, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
     print("added final constraint")
 
 
@@ -623,6 +620,7 @@ def enter_space_objects(grid1, grid2, grid3) -> tuple:
                             success = add_to_grid(grid3, (int)(SpaceObject_list[1]), (int)(SpaceObject_list[0]))
                     print(f"Adding SpaceObject to ({SpaceObject_list[0]}, {SpaceObject_list[1]}, {SpaceObject_list[2]})", end=" ")
                     if (success):
+                        E.add_constraint(SpaceObject(x, y, stage, True))
                         print("succeeded.")
                     else:
                         print("failed.")
