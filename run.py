@@ -413,7 +413,7 @@ def rocket_stage_1(universe, radius, stage=1):
         grid = universe[0] # Grid 1 for stage 1
         print(f"Stage:{stage}")
 
-        launch = radius//2 # Rocket starts in the middle of the planet
+        launch = radius - 1 # Rocket starts in the middle of the planet
         rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
@@ -421,30 +421,43 @@ def rocket_stage_1(universe, radius, stage=1):
 
         debug_print(grid, stage)
         print(f"Stage:{stage}")
+        
+        direction = 0
 
         while rocket.x < int(radius*2)-1: # Loop until end of grid, where the stage will switch
             x, y = get_position(rocket) # Position before move
 
-            # In grid 1, rocket will move rightward always, unless blocked by a space object, in which case it moves up/down    
-            if grid[y][x+1].P:
-                if x-1 >= 0 and not grid[y-1][x].P:
+            if direction == 0:
+                if x+1 > int(radius*2)-1 or grid[y][x+1].P :
+                    direction = (direction + 1) % 4
+                else:
+                    move(rocket, 'x', 1)
+            elif direction == 1:
+                if y == int(radius*2)-1 or grid[y+1][x].P :
+                    direction = (direction + 1) % 4
+                else:
                     move(rocket, 'y', 1)
-                    if y == int(radius*2)-1:
-                        move(rocket, 'y', 1)
-                elif x+1 <= radius + 1 and not grid[y+1][x].P:
+            elif direction == 2:
+                if x-1 < 0 or grid[y][x-1].P:
+                    direction = (direction+1) % 4
+                else:
+                    move(rocket, 'x', -1)
+            elif direction == 3:  
+                if grid[y - 1][x].P: 
+                    direction = (direction + 1) % 4  
+                else:
                     move(rocket, 'y', -1)
-                    if y == 0:
-                        move(rocket, 'y', -1)
-                elif not grid[y+1][x+1] or not grid[y-1][x+1]: #checking diagonals in case sandwiched
-                    move(rocket, 'x',-1)
-                    move(rocket,'y',1)
-            else:
-                move(rocket, 'x', 1)
-
-            journey.append(get_position(rocket))
-            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
-            grid[y][x].P=False # Sets previous Rocket position to empty space
-            debug_print(grid, stage)   
+            
+            
+            print(direction)
+            if (rocket.x, rocket.y) != (x,y):
+                if (rocket.x, rocket.y) in journey and (x, y) in journey:
+                    print("Unsolvable")
+                journey.append(get_position(rocket))
+                add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
+                print((y, x), (rocket.y, rocket.x))
+                grid[y][x].P=False # Sets previous Rocket position to empty space
+                debug_print(grid, stage)   
 
         x,y = get_position(rocket)
         
