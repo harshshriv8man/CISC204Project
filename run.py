@@ -97,8 +97,12 @@ def example_theory():
     for grid in range(3):
         for x in range(RADIUS * 2):
             for y in range(RADIUS * 2):
-                # Beacon cannot be on a planet or a SpaceObject with P=True.
-                E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid)) # DEBUG: Test to see if these constraints work.
+                # Beacon must be within Rocket reachability
+                if ((y, x, grid) not in reachable):
+                    E.add_constraint(~Beacon(x, y, grid))
+                
+                # Beacon cannot be on a planet, person, or a SpaceObject with P=True.
+                E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid))
                 E.add_constraint(SpaceObject(x, y, grid, True) >> ~Beacon(x, y, grid))
                 E.add_constraint(Person(x, y, grid) >> ~Beacon(x, y, grid))
 
