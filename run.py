@@ -429,88 +429,87 @@ Rocket dynamics function maps the moving of the rocket in all 3 stages.
 '''
 def rocket_stage_1(universe, radius, stage=1):
     journey = []
-    if (stage == 1):
-        grid = universe[0] # Grid 1 for stage 1
-        print(f"Stage:{stage}")
+    if stage == 1:
+        grid = universe[0]  # Grid 1 for stage 1
+        print(f"Stage: {stage}")
 
-        launch = radius - 1 # Rocket starts in the middle of the planet
+        launch = radius - 1  # Rocket starts in the middle of the planet
         rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
 
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True)) # Uses SpaceObject as a placeholder for the Rocket in the grid to visualize.
-        journey.append(get_position(rocket)) # Add initial position to map
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))  # Visualize rocket in grid
+        journey.append(get_position(rocket))  # Add initial position to map
 
         debug_print(grid, stage)
-        print(f"Stage:{stage}")
+        print(f"Stage: {stage}")
         
-        direction = 0
+        direction = 0  # Start by moving to the right (x++)
+        queue = PositionQueue(None, rocket.x, rocket.y, 1)  # Queue to track rocket's positions
 
-        queue = PositionQueue(None, rocket.x, rocket.y, 1)
+        visited_positions = set()  # Set to track visited positions and directions
 
-        while rocket.x < int(radius*2)-1: # Loop until end of grid, where the stage will switch
-            x, y = get_position(rocket) # Position before move
+        while rocket.x < int(radius * 2) - 1:  # Loop until end of grid, where the stage will switch
+            x, y = get_position(rocket)  # Position before move
 
-            if direction == 0:
-                if x+1 > int(radius*2)-1 or grid[y][x+1].P :
-                    direction = (direction + 1) % 4
+            if (x, y, direction) in visited_positions:  # Check if current position with direction is visited before
+                print("Unsolvable, no valid path for the Rocket in stage 1 (detected loop).")
+                return journey  # If visited before, exit the function as it's unsolvable
+            visited_positions.add((x, y, direction))  # Add the current position and direction to the visited set
+
+            # Move in the current direction
+            if direction == 0:  # Move right (x++)
+                if x + 1 > int(radius * 2) - 1 or grid[y][x + 1].P:  # If next position in x is blocked or out of bounds
+                    direction = (direction + 1) % 4  # Try the next direction (down)
                 else:
                     move(rocket, 'x', 1)
-            elif direction == 1:
-                if y == int(radius*2)-1 or grid[y+1][x].P :
-                    direction = (direction + 1) % 4
+
+            elif direction == 1:  # Move down (y++)
+                if y + 1 > int(radius * 2) - 1 or grid[y + 1][x].P:  # If next position in y is blocked or out of bounds
+                    direction = (direction + 1) % 4  # Try the next direction (left)
                 else:
                     move(rocket, 'y', 1)
-            elif direction == 2:
-                if x-1 < 0 or grid[y][x-1].P:
-                    direction = (direction+1) % 4
+
+            elif direction == 2:  # Move left (x--)
+                if x - 1 < 0 or grid[y][x - 1].P:  # If next position in x is blocked or out of bounds
+                    direction = (direction + 1) % 4  # Try the next direction (up)
                 else:
                     move(rocket, 'x', -1)
-            elif direction == 3:  
-                if grid[y - 1][x].P: 
-                    direction = (direction + 1) % 4  
+
+            elif direction == 3:  # Move up (y--)
+                if y - 1 < 0 or grid[y - 1][x].P:  # If next position in y is blocked or out of bounds
+                    direction = (direction + 1) % 4  # Try the next direction (right)
                 else:
                     move(rocket, 'y', -1)
-            
-            
-            # print(direction)
-            if (rocket.x, rocket.y) != (x,y):
-                queue = PositionQueue(queue, rocket.x, rocket.y, queue.len() + 1)
-                if (queue.get_previous() != None): # Does not currently work.
-                    pos_current = (queue.get_x(), queue.get_y())
-                    pos_current_previous = (queue.get_previous().get_x(), queue.get_previous().get_y())
-                    current_queue = queue.get_previous()
-                    for x in range(queue.len() - 1):
-                        # If (currentx, currenty) == poscurrent and (previousx, previousy) == poscurrentprevious:
-                        if ((current_queue.get_x(), current_queue.get_y()) == pos_current and (current_queue.get_previous().get_x(), current_queue.get_previous().get_y()) == pos_current_previous):
-                            print("Unsolvable, no valid path for the Rocket in stage 1.")
-                            return journey
-                        current_queue = current_queue.get_previous()
-                journey.append(get_position(rocket))
+
+            # Track the rocket's journey
+            if (rocket.x, rocket.y) != (x, y):  # If the position has changed, update journey
+                queue = PositionQueue(queue, rocket.x, rocket.y, queue.len() + 1)  # Add current position to queue
+                journey.append(get_position(rocket))  # Add new position to journey
+
+                # Visualize rocket in grid
                 add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
-                grid[y][x].P=False # Sets previous Rocket position to empty space
+                grid[y][x].P = False  # Set previous position to empty space
                 debug_print(grid, stage)
 
-        x,y = get_position(rocket)
-        
-        if x == int(radius*2)-1:
-                # Check if all the positions in the next column (x == radius) are clear (opposite of checkpoint_positions_1)
-                all_clear = False
-                for i in range(len(checkpoint_positions_1)):
-                    if checkpoint_positions_1[i] == grid[i][int(radius*2)-1].P:  
-                        all_clear = True
-                        break
+        # Check if we have reached the end of the journey and can proceed to the next stage
+        x, y = get_position(rocket)
+        if x == int(radius * 2) - 1:
+            # Check if the column ahead is clear of obstacles
+            all_clear = False
+            for i in range(len(checkpoint_positions_1)):
+                if checkpoint_positions_1[i] == grid[i][int(radius * 2) - 1].P:
+                    all_clear = True
+                    break
 
-                # If there are no obstacles in the next column, move to the next stage
-                if all_clear:
-                    print(f"Rocket reached the checkpoint at ({x}, {y}) in stage 1. Moving to stage 2.", end="\n")
-                    stage = 2  # Move to the next stage (stage 2) 
+            if all_clear:
+                print(f"Rocket reached the checkpoint at ({x}, {y}) in stage 1. Moving to stage 2.", end="\n")
+                stage = 2  # Move to the next stage (stage 2)
 
-        
-        print(f"Stage:{stage}", end="\n")
-
-        print("Journey Path: ", end="\n") # Print the journey coordinates (path) of the rocket
+        print(f"Stage: {stage}", end="\n")
+        print("Journey Path: ", end="\n")
         for step in journey:
             print(f"({step[0]}, {step[1]})", end=" -> ")
-        print()   
+        print()
+
     return journey
 
 def rocket_stage_2(universe, radius, stage=2):
