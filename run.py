@@ -97,13 +97,13 @@ def example_theory():
             for y in range(RADIUS * 2):
 
                 # Beacon must be within Rocket reachability
-                if ((y, x, grid) not in reachable):
-                    E.add_constraint(~Beacon(x, y, grid))
+                if ((y, x, grid+1) not in reachable):
+                    E.add_constraint(~Beacon(x, y, grid+1))
                 
                 # Beacon cannot be on a planet, person, or a SpaceObject with P=True.
-                E.add_constraint(PlanetCell(x, y, grid, True) >> ~Beacon(x, y, grid))
-                E.add_constraint(SpaceObject(x, y, grid, True) >> ~Beacon(x, y, grid))
-                E.add_constraint(Person(x, y, grid) >> ~Beacon(x, y, grid))
+                E.add_constraint(PlanetCell(x, y, grid+1, True) >> ~Beacon(x, y, grid+1))
+                E.add_constraint(SpaceObject(x, y, grid+1, True) >> ~Beacon(x, y, grid+1))
+                E.add_constraint(Person(x, y, grid+1) >> ~Beacon(x, y, grid+1))
 
 
     # Determine if a person is within a beacon's reachability.
@@ -166,7 +166,7 @@ def example_theory():
 
     # Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
     
-    constraint.add_at_most_k(E, 6, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
+    constraint.add_at_most_k(E, 3, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
     print("added final constraint")
 
     return E
@@ -180,7 +180,7 @@ class Beacon:
         self.grid = grid
 
     def _prop_name(self):
-        return f"Beacon at ({self.y}, {self.x}).\n" # (y, x) format
+        return f"\033[36m Beacon at ({self.y}, {self.x}, {self.grid}). \033[0m"  # (y, x) format
 
 @proposition(E)
 class Rocket: 
@@ -213,7 +213,7 @@ class Reachable:
         self.grid = grid
 
     def _prop_name(self):
-        return f"({self.y}, {self.x}) is reachable." # (y, x) format
+        return f"({self.y}, {self.x}, {self.grid}) is reachable." # (y, x) format
 
 @proposition(E)
 class PlanetCell:
@@ -226,7 +226,7 @@ class PlanetCell:
         self.grid = grid
     
     def _prop_name(self):
-        return f"At ({self.y}, {self.x}, {self.grid})"
+        return f"Grid at: ({self.y}, {self.x}, {self.grid})"
 
 @proposition(E)
 class Person:
