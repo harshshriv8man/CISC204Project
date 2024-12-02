@@ -83,9 +83,11 @@ def example_theory():
         else:
             for x in range(3):
                 for y in range(3):
-                    reachable.append((position[0] - 1 + y, position[1] - 1 + x, current_stage))
-                    beacons.append(Beacon(position[1] - 1 + x, position[0] - 1 + y, current_stage)) # Makes every possible reachable Beacon position (less calculations than every possible Beacon position)
-                    E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, current_stage))
+                    # Outside the grid is not reachable
+                    if (position[0] - 1 + y > -1 and position[1] - 1 + x > -1 and position[0] - 1 + y < RADIUS * 2 and position[1] - 1 + x < RADIUS * 2):
+                        reachable.append((position[0] - 1 + y, position[1] - 1 + x, current_stage))
+                        beacons.append(Beacon(position[1] - 1 + x, position[0] - 1 + y, current_stage)) # Makes every possible reachable Beacon position (less calculations than every possible Beacon position)
+                        E.add_constraint(Reachable(position[1] - 1 + x, position[0] - 1 + y, current_stage))
 
 
     # A Beacon can't be on other objects
@@ -112,7 +114,6 @@ def example_theory():
             for y in range(BEACON_RANGE * 2 + 1):
                 if (i[0] - BEACON_RANGE + y >= 0 and i[1] - BEACON_RANGE + x >= 0):
                     reach.append((i[0] - BEACON_RANGE + y, i[1] - BEACON_RANGE + x, i[2])) # (y, x, stage)
-    print("\n",reach)
 
 
     # A beacon can't save no people (If no people are inside its radius, there cannot be a Beacon there)
