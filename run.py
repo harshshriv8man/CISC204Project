@@ -36,7 +36,6 @@ checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
 RADIUS = 2
 BEACON_RANGE = 1
-stage = 1
 
 # Build an example full theory for your setting and return it.
 #
@@ -241,6 +240,28 @@ class Person:
         return f"Person at ({self.y}, {self.x}) (y, x)"
 
 """
+Queue of positions.
+"""
+class PositionQueue:
+    def __init__(self, previous, x, y, length):
+        self.queue_previous = previous
+        self.x = x
+        self.y = y
+        self.length = length
+
+    def get_previous(self):
+        return self.queue_previous
+    
+    def get_x(self):
+        return self.x
+    
+    def get_y(self):
+        return self.y
+
+    def len(self):
+        return self.length
+
+"""
 @param Direction can be 'x' or 'y'
 """
 def move(object, direction, amount: int):
@@ -423,6 +444,8 @@ def rocket_stage_1(universe, radius, stage=1):
         
         direction = 0
 
+        queue = PositionQueue(None, rocket.x, rocket.y, 1)
+
         while rocket.x < int(radius*2)-1: # Loop until end of grid, where the stage will switch
             x, y = get_position(rocket) # Position before move
 
@@ -448,15 +471,23 @@ def rocket_stage_1(universe, radius, stage=1):
                     move(rocket, 'y', -1)
             
             
-            print(direction)
+            # print(direction)
             if (rocket.x, rocket.y) != (x,y):
-                if (rocket.x, rocket.y) in journey and (x, y) in journey:
-                    print("Unsolvable")
+                queue = PositionQueue(queue, rocket.x, rocket.y, queue.len() + 1)
+                if (queue.get_previous() != None): # Does not currently work.
+                    pos_current = (queue.get_x(), queue.get_y())
+                    pos_current_previous = (queue.get_previous().get_x(), queue.get_previous().get_y())
+                    current_queue = queue.get_previous()
+                    for x in range(queue.len() - 1):
+                        # If (currentx, currenty) == poscurrent and (previousx, previousy) == poscurrentprevious:
+                        if ((current_queue.get_x(), current_queue.get_y()) == pos_current and (current_queue.get_previous().get_x(), current_queue.get_previous().get_y()) == pos_current_previous):
+                            print("Unsolvable, no valid path for the Rocket in stage 1.")
+                            return journey
+                        current_queue = current_queue.get_previous()
                 journey.append(get_position(rocket))
                 add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
-                print((y, x), (rocket.y, rocket.x))
                 grid[y][x].P=False # Sets previous Rocket position to empty space
-                debug_print(grid, stage)   
+                debug_print(grid, stage)
 
         x,y = get_position(rocket)
         
