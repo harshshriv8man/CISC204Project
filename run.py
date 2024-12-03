@@ -34,8 +34,8 @@ people_positions = [] # (y, x, stage)
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 2
-BEACON_RANGE = 1
+RADIUS = 2 # Changes the radius of all planets, also increasing the size of the grid by 2*RADIUS
+BEACON_RANGE = 1 # The range at which a beacon can save a person
 
 # Build an example full theory for your setting and return it.
 #
@@ -76,7 +76,7 @@ def example_theory():
     # Determine Rocket reachability.
     current_stage = 1
     reachable = [] # (y, x, grid)
-    beacons = []
+    beacons = [] # Beacon(x, y, grid)
     for position in journey:
         if (position == (-1, -1)):
             current_stage += 1
@@ -230,9 +230,8 @@ class PlanetCell:
 
 @proposition(E)
 class Person:
-    def __init__(self, x, y, grid, P=False, T=True):
-        self.P = P # Kill this later
-        self.T = T # T for translucent
+    def __init__(self, x, y, grid: int, P=False):
+        self.P = P
         self.x = x
         self.y = y
         self.grid = grid
@@ -343,7 +342,6 @@ def debug_print(grid, stage: int):
             else:
                 if (cell.P):
                     print("\033[32m", end="")
-                # Essentially, want the checkpoints to be active (yellow) until the rocket gets there, then change to a duller colour
                 elif (stage == 1 and x == RADIUS*2 - 1 and checkpoint_positions_1[y]):
                     print("\033[93m", end="")
                 elif (stage == 2 and x == RADIUS  and checkpoint_positions_2[y]):
