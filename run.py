@@ -522,12 +522,19 @@ def rocket_stage_2(universe, radius, stage=2):
     start_x, start_y = 0, radius + 1
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=start_x, y=start_y)
 
+    visited_positions = set()
+
     add_to_grid(grid,rocket.x,rocket.y,SpaceObject(rocket.x, rocket.y, grid, P=True))
     journey.append(get_position(rocket))
     debug_print(grid,stage)
 
     while rocket.y > 0 :
         x, y = get_position(rocket)
+
+        if (x, y) in visited_positions:  # Check if current position with direction is visited before
+                print("Unsolvable, no valid path for the Rocket in stage 1 (detected loop).")
+                return journey  # If visited before, exit the function as it's unsolvable
+        visited_positions.add((x, y))  # Add the current position and direction to the visited set
 
         if rocket.x < radius + 1:
             move(rocket, 'x', 1)
