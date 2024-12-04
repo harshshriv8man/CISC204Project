@@ -22,7 +22,7 @@ people_positions = [] # (y, x, stage)
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 3 # Changes the radius of all planets, also increasing the size of the grid by 2*RADIUS
+RADIUS = 2 # Changes the radius of all planets, also increasing the size of the grid by 2*RADIUS
 BEACON_RANGE = 1 # The range at which a beacon can save a person
 
 def example_theory():
@@ -156,7 +156,7 @@ class Beacon:
         self.grid = grid
 
     def _prop_name(self):
-        return f"\033[36m Beacon at ({self.y}, {self.x}, {self.grid}). \033[0m"  # (y, x) format
+        return f"\033[36m Beacon at ({self.y}, {self.x}). \033[0m"  # (y, x) format
 
 @proposition(E)
 class Rocket: 
