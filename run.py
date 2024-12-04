@@ -18,35 +18,14 @@ class BasicPropositions:
     def _prop_name(self):
         return f"A.{self.data}"
 
-#TODO Find out how to set b1-b8 to True or False. Seems like what we set is not considered and can and is overwritten
-b1 = BasicPropositions("b1")
-b2 = BasicPropositions("b2")
-b3 = BasicPropositions("b3")
-b4 = BasicPropositions("b4")
-b5 = BasicPropositions("b5")
-b6 = BasicPropositions("b6")
-b7 = BasicPropositions("b7")
-b8 = BasicPropositions("b8")
-fuel = BasicPropositions("fuel")
-
-arr = [b1, b2, b3, b4, b5, b6, b7, b8]
 people_positions = [] # (y, x, stage)
 checkpoint_positions_1 = [] # Checkpoint positions for stage 1
 checkpoint_positions_2 = [] # Checkpoint positions for stage 2
 checkpoint_positions_3 = [] # Checkpoint positions for stage 3
-RADIUS = 2 # Changes the radius of all planets, also increasing the size of the grid by 2*RADIUS
+RADIUS = 3 # Changes the radius of all planets, also increasing the size of the grid by 2*RADIUS
 BEACON_RANGE = 1 # The range at which a beacon can save a person
 
-# Build an example full theory for your setting and return it.
-#
-#  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
-#  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
-#  what the expectations are.
 def example_theory():
-    # Base constraints before calculations:
-    # E.add_constraint((~b1 & ~b2 & ~b3 & ~b4 & ~b5 & ~b6 & ~b7 & ~b8) >> ~fuel) # If fuel = 0, there is no fuel.
-    # E.add_constraint((b1 | b2 | b3 | b4 | b5 | b6 | b7 | b8) >> fuel) # If fuel > 0, there is fuel. Currently creates unsolvable solution error if added.
-    
     # Calculations:
 
     grid1 = create_grid(RADIUS, 1)
@@ -64,8 +43,6 @@ def example_theory():
     debug_print(grid3, 3)
 
     # Ask user for initial conditions
-    enter_fuel()
-    print()
     (grid1, grid2, grid3) = enter_space_objects(grid1, grid2, grid3)
 
     universe = [grid1, grid2, grid3]
@@ -165,8 +142,7 @@ def example_theory():
     # Implied Beacon constraints:
 
     # Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
-    
-    constraint.add_at_most_k(E, 3, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
+    constraint.add_at_most_k(E, 6, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
     print("added final constraint")
 
     return E
@@ -650,30 +626,6 @@ def rocket_stage_3(universe, radius, stage=3):
 
     return journey
 
-
-"""
-Sets fuel to the number specified by the user.
-"""
-def enter_fuel() -> None:
-    fuel_str = input("Please enter the rocket's starting fuel amount in binary, up to 8 digits.\n")
-    assert len(fuel_str) < 9, "Your number is more than 8 digits"
-    i = 0
-    for num in fuel_str:
-        if (num == '1'):
-            arr[i] = True # This just changed arr[i] to True, not set the proposition to True. How do we set the proposition's status?
-                          # Idea: Create two classes, one with the constraint that it is always True, one that it is always False, then set b1-b8 to be one of those
-                          # propositions and change/set a new b{x} to the other when that b{x} is changed.
-        elif (num == '0'):
-            arr[i] = False
-        else:
-            print("The character at index", i, "cannot be accepted.")
-            return
-        i += 1
-    if (i<7):
-        for j in range(i, 8): # If the binary number entered is less than 8 digits, set the remaining binary values to false.
-            arr[j] = False
-    print(arr)
-
 def enter_space_objects(grid1, grid2, grid3) -> tuple:
     complete = False
     print("Please enter the position of a SpaceObject in the format 'y, x, grid'.\nSpaceObjects on people, planets, or the starting position of the rocket will not be accepted.\nType 'stop' to continue with currently set SpaceObjects.")
@@ -707,38 +659,7 @@ def enter_space_objects(grid1, grid2, grid3) -> tuple:
         else:
             complete = True
     return (grid1, grid2, grid3)
-""" Subtract 1 to arr (value of fuel). If arr is filled with false (Fuel = 0) sets fuel to False and ends process, returning fuel.
-"""
-def fuel_calc():
-    for i in arr: 
-        if i:
-            i = False
-            break
-        i = True
-    if (not b1 and not b2 and not b3 and not b4 and not b5 and not b6 and not b7 and not b8):
-        fuel = False # TODO: Does not set universal proposition "fuel" to False? Why?
 
-# Included code as reference:
-
-# Different classes for propositions are useful because this allows for more dynamic constraint creation
-# for propositions within that class. For example, you can enforce that "at least one" of the propositions
-# that are instances of this class must be true by using a @constraint decorator.
-# other options include: at most one, exactly one, at most k, and implies all.
-# For a complete module reference, see https://bauhaus.readthedocs.io/en/latest/bauhaus.html
-# @constraint.at_least_one(E)
-# @proposition(E)
-# class FancyPropositions:
-
-#     def __init__(self, data):
-#         self.data = data
-
-#     def _prop_name(self):
-#         return f"A.{self.data}"
-
-# At least one of these will be true
-# x = FancyPropositions("x")
-# y = FancyPropositions("y")
-# z = FancyPropositions("z")
 
 if __name__ == "__main__":
 
