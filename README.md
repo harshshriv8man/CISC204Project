@@ -10,55 +10,42 @@ Given the fuel of a rocket and the radius of the orbital assist body, will the m
 
 This will be using a grid to represent space where the rocket takes up one cell and can move one cell at a time. There will be conditions that the rocket needs to meet to move to certain cells, and fuel will be used up when doing so. These conditions are split into three parts: takeoff, assist, and landing.
 
+
+
 ## Structure
 
 * `documents`: Contains folders for both of your draft and final submissions. README.md files are included in both.
 * `run.py`: General wrapper script that you can choose to use or not. Only requirement is that you implement the one function inside of there for the auto-checks.
 * `test.py`: Run this file to confirm that your submission has everything required. This essentially just means it will check for the right files and sufficient theory size.
 
-## Running With Docker
+## How to run
 
-By far the most reliable way to get things running is with [Docker](https://www.docker.com). This section runs through the steps and extra tips to running with Docker. You can remove this section for your final submission, and replace it with a section on how to run your project.
+To run with default settings, simply run run.py.
 
-1. First, download Docker https://www.docker.com/get-started
+Instructions:
 
-2. Navigate to your project folder on the command line.
+When you run the program, it will print three stages containing the environment for each stage (grid).
 
-3. We first have to build the course image. To do so use the command:
-`docker build -t cisc204 .`
+Green True means Planet (Later will also represent SpaceObjects), yellow False means checkpoint (The rocket must reach these in order to move on to the next stage),
+blue True means Person, and red False means empty space.
 
-4. Now that we have the image we can run the image as a container by using the command: `docker run -it -v $(pwd):/PROJECT cisc204 /bin/bash`
+The rocket will start in stage 1 in (or 1 above in the case of even radii planets) the center of the planet, one column to the right.
 
-    `$(pwd)` will be the current path to the folder and will link to the container
+The rocket can move through empty space, checkpoints and people. If the rocket is trapped in a loop, the program will end.
 
-    `/PROJECT` is the folder in the container that will be tied to your local directory
+The rocket must reach the final column in stage 1 to continue; go through a checkpoint beneath the planet, then above the planet, and finally back to left column in stage 2; and reach the second last column to the right in stage 3 to succeed and have the SAT Solver begin solving.
 
-5. From there the two folders should be connected, everything you do in one automatically updates in the other. For the project you will write the code in your local directory and then run it through the docker command line. A quick test to see if they're working is to create a file in the folder on your computer then use the terminal to see if it also shows up in the docker container.
+You can summon SpaceObjects to redirect
 
-### Mac Users w/ M1 Chips
+Story:
 
-If you happen to be building and running things on a Mac with an M1 chip, then you will likely need to add the following parameter to both the build and run scripts:
+How to modify those default settings:
 
-```
---platform linux/x86_64
-```
-
-For example, the build command would become:
-
-```
-docker build --platform linux/x86_64 -t cisc204 .
-```
-
-### Mount on Different OS'
-
-In the run script above, the `-v $(pwd):/PROJECT` is used to mount the current directory to the container. If you are using a different OS, you may need to change this to the following:
-
-- Windows PowerShell: `-v ${PWD}:/PROJECT`
-- Windows CMD: `-v %cd%:/PROJECT`
-- Mac: `-v $(pwd):/PROJECT`
-
-Finally, if you are in a folder with a bunch of spaces in the absolute path, then it will break things unless you "quote" the current directory like this (e.g., on Windows CMD):
-
-```
-docker run -it -v "%cd%":/PROJECT cisc204
-```
+1. To get larger planets and grids to work with, change the constant 'RADIUS' to anything >= 2. WARNING: The larger you set this value, the exponentially many constraints there will be for the SAT Solver to solve, so at larger values, depending on your computer, it may or may not successfully run. Default is 2.
+2. To change the range at which Beacons can save people, change the constant 'BEACON_RANGE'. Make it as large as you want (within the bounds of the grid), or set it to 0 so no one can be saved! Up to you. Default is 1.
+   Example: BEACON_RANGE = 1 means:
+   xxx
+   x0x
+   xxx
+   Where x is the saving range and 0 is the Beacon.
+3. To increase or decrease the number of Beacons the SAT Solver can place, change constraint.add_at_most_k(E, 6, beacons) such that the 6 is the number of max Beacons you would like. Default is 6.

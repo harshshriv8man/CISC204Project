@@ -36,10 +36,13 @@ def example_theory():
     add_people(grid2, RADIUS, 2)
     add_people(grid3, RADIUS, 3)
 
-    print("Adding people...\n")
-
+    print("Stage 1:")
     debug_print(grid1, 1)
+
+    print("Stage 2:")
     debug_print(grid2, 2)
+
+    print("Stage 3:")
     debug_print(grid3, 3)
 
     # Ask user for initial conditions
@@ -274,34 +277,25 @@ def create_grid(radius, stage):
         if 0 <= x < rows and 0 <= y < rows:
             grid[y][x].P = True # Grid's order is in [y][x] to improve spacial locality as movement in the x axis is more common.
             E.add_constraint(PlanetCell(x, y, stage, True))
-    print("Checkpoint positions:")
     if (stage == 2 or stage == 3):
-        print("x =", radius, end="\ny = ")
         for i in range(rows): # Places checkpoints on the far right edge of the planet in stage 2, and the cell to the left of the planet in stage 3.
             if grid[i][radius * 2 - 2].P == False:
                 if (stage == 2):
                     checkpoint_positions_2.append(True)
                 else:
                     checkpoint_positions_3.append(True)
-                print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
             else:
                 if (stage == 2):
                     checkpoint_positions_2.append(False)
                 else:
                     checkpoint_positions_3.append(False)
     else:
-        print("x =", radius + 1, end="\ny = ")
         for i in range(rows): # Stage 1 needs to end at the end of the grid, so Checkpoints are placed there.
             if grid[i][(int)(radius*2) - 1].P == False:
                 checkpoint_positions_1.append(True)
-                
-                print(i, end="; ") # DEBUG (Shows y position of current Checkpoint)
             else:
                 checkpoint_positions_1.append(False)
-
-    print()
     
-    debug_print(grid, stage) # DEBUG
     return grid
 
 """
