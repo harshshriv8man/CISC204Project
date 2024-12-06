@@ -96,7 +96,7 @@ def example_theory():
                     reach.append((i[0] - BEACON_RANGE + y, i[1] - BEACON_RANGE + x, i[2])) # (y, x, stage)
 
 
-    # A beacon can't save no people (If no people are inside its radius, there cannot be a Beacon there)
+    # A beacon can't save zero people (If no people are inside its radius, there cannot be a Beacon there)
 
     not_beacon = []
     for i in reach:
