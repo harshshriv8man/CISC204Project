@@ -6,9 +6,24 @@ Change this README.md file to summarize your project, and provide pointers to th
 
 ## Summary
 
-Given the fuel of a rocket and the radius of the orbital assist body, will the mission from the take off-body, to an orbital assist around the orbital assist body, to landing on the landing body be successful?
+What if a SAT Solver could be used to run a game? Well, it turns out it can! In part.
 
-This will be using a grid to represent space where the rocket takes up one cell and can move one cell at a time. There will be conditions that the rocket needs to meet to move to certain cells, and fuel will be used up when doing so. These conditions are split into three parts: takeoff, assist, and landing.
+Story:
+
+This program is a game set in a future where the people of Earth have colonized a distant planet named "Post Tenebras Spero Lucem" after the many lives it took to get there. However, not all hope is lost for those lives,
+as every person on the journey was injected with a syrum before liftoff that allowed them to stay alive for an extended period in open space (thank science!). Mission Saviour has been initiated, and we need you to navigate
+the rocket through the stages the original ship took, making your path to save as many people as possible while still being able to reach Post Tenebras Spero Lucem in the end. How do you do this? Well, we've equipped the
+ship computer with 6 beacons that can call out, gather and save people within a 3x3 SpaceGrid^TM around itself. The ship computer will pick the most optimal places to put these 6 beacons along your entire journey, and can
+only reach out one cell (including diagonals) from the rocket to place these beacons. So as the captain of this vessel, you get access to experimental technology, allowing you to summon SpaceObjects^TM anywhere along the
+rocket's journey that did not previously contain anything. When the rocket runs into any of your SpaceObjects, a planet, or the edge of the mission zone, it will turn right 90 degrees until it can move forward again. 
+We've also equipped the passengers of the previous mission with rocket-proof armour, so they will survive a direct impact by the rocket. But please keep note, the armour does not midigate the pain.
+
+Good luck, Captain.
+People of Earth, signing off.
+
+Other:
+
+Constraints are added to decide where the Beacon can't go, then based on that, the SAT Solver will choose up to 6 (or however many you change it to) Beacons to be True (placed in the valid locations). It will not tell you how many people are saved, however based on the locations of the Beacons and the BEACON_RADIUS, it's simple enough to interpret.
 
 ## Structure
 
@@ -16,49 +31,41 @@ This will be using a grid to represent space where the rocket takes up one cell 
 * `run.py`: General wrapper script that you can choose to use or not. Only requirement is that you implement the one function inside of there for the auto-checks.
 * `test.py`: Run this file to confirm that your submission has everything required. This essentially just means it will check for the right files and sufficient theory size.
 
-## Running With Docker
+## How to run
 
-By far the most reliable way to get things running is with [Docker](https://www.docker.com). This section runs through the steps and extra tips to running with Docker. You can remove this section for your final submission, and replace it with a section on how to run your project.
+To run with default settings, simply run run.py.
 
-1. First, download Docker https://www.docker.com/get-started
+Instructions:
 
-2. Navigate to your project folder on the command line.
+When you run the program, it will print three stages containing the environment for each stage (grid).
 
-3. We first have to build the course image. To do so use the command:
-`docker build -t cisc204 .`
+Green True means Planet (Later will also represent SpaceObjects and the Rocket), yellow False means checkpoint (The rocket must reach these in order to move on to the next stage),
+blue True means Person, and red False means empty space.
 
-4. Now that we have the image we can run the image as a container by using the command: `docker run -it -v $(pwd):/PROJECT cisc204 /bin/bash`
+A person will print over top of the rocket if the rocket moves through a person, so don't be afraid that the rocket disappears at some point along its journey!
 
-    `$(pwd)` will be the current path to the folder and will link to the container
+The rocket will start in stage 1 in (or 1 above in the case of even radii planets) the center of the planet, one column to the right.
 
-    `/PROJECT` is the folder in the container that will be tied to your local directory
+The rocket can move through empty space, checkpoints and people. If the rocket is trapped in a loop, the program will end.
 
-5. From there the two folders should be connected, everything you do in one automatically updates in the other. For the project you will write the code in your local directory and then run it through the docker command line. A quick test to see if they're working is to create a file in the folder on your computer then use the terminal to see if it also shows up in the docker container.
+The rocket must reach the final column in stage 1 to continue; go through a checkpoint beneath the planet, then above the planet, and finally back to left column in stage 2; and reach the second last column to the right in stage 3 to succeed and have the SAT Solver begin solving.
 
-### Mac Users w/ M1 Chips
+The object of the game is to save as many people stranded in space as you can before the rocket completes its journey. You can do this by moving the rocket close to the stranded people; Beacons can only be placed within the radius of the rocket along its path (default is 1), and all people within the beacon's radius (default 1) will be saved.
 
-If you happen to be building and running things on a Mac with an M1 chip, then you will likely need to add the following parameter to both the build and run scripts:
+Remember, the SAT Solver can only place up to 6 Beacons as default, so it will randomly pick out of the valid locations you give it.
 
-```
---platform linux/x86_64
-```
+You can move the rocket by summoning SpaceObjects in front of the rocket, redirecting its path. The rocket will turn 90 degrees right whenever it runs into a SpaceObject, a planet, or the edge of the grid, so try to use the natural features of space to your advantage.
 
-For example, the build command would become:
+You can enter SpaceObjects into the grid when prompted, they will take the form "y, x, grid", where y, x, and grid are integers (grid can be 1, 2, or 3. y, x can be any integer within the range of the grid (< 2 * RADIUS, > -1)). The first two are the coordinates of your location, and the third is which stage you would like the SpaceObject to be placed in. Make sure you have the spaces and commas just like the example, or it may not work. Space Objects can only be placed on empty space that is not the starting position of the Rocket.
 
-```
-docker build --platform linux/x86_64 -t cisc204 .
-```
+How to modify those default settings:
 
-### Mount on Different OS'
-
-In the run script above, the `-v $(pwd):/PROJECT` is used to mount the current directory to the container. If you are using a different OS, you may need to change this to the following:
-
-- Windows PowerShell: `-v ${PWD}:/PROJECT`
-- Windows CMD: `-v %cd%:/PROJECT`
-- Mac: `-v $(pwd):/PROJECT`
-
-Finally, if you are in a folder with a bunch of spaces in the absolute path, then it will break things unless you "quote" the current directory like this (e.g., on Windows CMD):
-
-```
-docker run -it -v "%cd%":/PROJECT cisc204
-```
+1. To get larger planets and grids to work with, change the constant 'RADIUS' to anything >= 2. WARNING: The larger you set this value, the exponentially many constraints there will be for the SAT Solver to solve, so at larger values, depending on your computer, it may or may not successfully run. Default is 2.
+2. To change the range at which Beacons can save people, change the constant 'BEACON_RANGE'. Make it as large as you want (within the bounds of the grid), or set it to 0 so no one can be saved! Up to you. Default is 1.
+   Example: BEACON_RANGE = 1 means:
+   xxx
+   x0x
+   xxx
+   Where x is the saving range and 0 is the Beacon.
+3. To increase or decrease the number of Beacons the SAT Solver can place, change constraint.add_at_most_k(E, 6, beacons) such that the 6 is the number of max Beacons you would like. Default is 6.
+4. Beacons don't show what grid they're on to begin with, since the compilation time of the SAT Solver took way too long on all of our computers when we added that. But if you would like to see that, and think your computer can handle it, on line 162 (last line in Beacon class), add ', {self.grid}' just to the right of '{self.y}, {self.x}'.
