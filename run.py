@@ -549,7 +549,7 @@ def rocket_stage_3(universe, radius, stage=3):
     print(f"Stage: {stage}")
 
     launch = radius - 1  # Rocket starts in the middle of the planet
-    rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=1, y=launch)
+    rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=0, y=launch)
 
     add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
     journey.append(get_position(rocket))  # Add initial position to map
