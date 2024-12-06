@@ -6,11 +6,20 @@ Change this README.md file to summarize your project, and provide pointers to th
 
 ## Summary
 
-Given the fuel of a rocket and the radius of the orbital assist body, will the mission from the take off-body, to an orbital assist around the orbital assist body, to landing on the landing body be successful?
+What if a SAT Solver could be used to run a game? Well, it turns out it can! In part.
 
-This will be using a grid to represent space where the rocket takes up one cell and can move one cell at a time. There will be conditions that the rocket needs to meet to move to certain cells, and fuel will be used up when doing so. These conditions are split into three parts: takeoff, assist, and landing.
+Story:
 
+This program is a game set in a future where the people of Earth have colonized a distant planet named "Post Tenebras Spero Lucem" after the many lives it took to get there. However, not all hope is lost for those lives,
+as every person on the journey was injected with a syrum before liftoff that allowed them to stay alive for an extended period in open space (thank science!). Mission Saviour has been initiated, and we need you to navigate
+the rocket through the stages the original ship took, making your path to save as many people as possible while still being able to reach Post Tenebras Spero Lucem in the end. How do you do this? Well, we've equipped the
+ship computer with 6 beacons that can call out, gather and save people within a 3x3 SpaceGrid^TM around itself. The ship computer will pick the most optimal places to put these 6 beacons along your entire journey, and can
+only reach out one cell (including diagonals) from the rocket to place these beacons. So as the captain of this vessel, you get access to experimental technology, allowing you to summon SpaceObjects^TM anywhere along the
+rocket's journey that did not previously contain anything. When the rocket runs into any of your SpaceObjects, a planet, or the edge of the mission zone, it will turn right 90 degrees until it can move forward again. 
+We've also equipped the passengers of the previous mission with rocket-proof armour, so they will survive a direct impact by the rocket. But please keep note, the armour does not midigate the pain.
 
+Good luck, Captain.
+People of Earth, signing off.
 
 ## Structure
 
@@ -35,9 +44,7 @@ The rocket can move through empty space, checkpoints and people. If the rocket i
 
 The rocket must reach the final column in stage 1 to continue; go through a checkpoint beneath the planet, then above the planet, and finally back to left column in stage 2; and reach the second last column to the right in stage 3 to succeed and have the SAT Solver begin solving.
 
-The object of the game is to save as many people stranded in space as you can before the rocket completes its journey. You can do this by moving the rocket close to the stranded people; it will place a beacon once its close enough, and all people within the beacon's radius will be saved. The rocket will automatically place the beacon in the optimal place it can, so it's up to you to get it there. You only get six beacons per game, so be strategic about where you place them! You can move the rocket by summoning SpaceObjects in front of the rocket, redirecting its path. The rocket will turn 90 degrees right whenever it runs into a SpaceObject, a planet, or the edge of the grid, so try to use the natural features of space to your advantage. You can enter SpaceObjects into the grid when prompted, they will take the form "x, y, grid", where all three are integers. The first two are the coordinates of your location, and the third is which stage you would like the SpaceObject to be placed in. Make sure you have the spaces and commas just like the example, or it may not work. 
-
-Story:
+The object of the game is to save as many people stranded in space as you can before the rocket completes its journey. You can do this by moving the rocket close to the stranded people; it will place a beacon once its close enough, and all people within the beacon's radius will be saved. The rocket will automatically place the beacons in the most optimal place it can along its path, so it's up to you to get it there. You only get six beacons per game, so be strategic about where you place them! You can move the rocket by summoning SpaceObjects in front of the rocket, redirecting its path. The rocket will turn 90 degrees right whenever it runs into a SpaceObject, a planet, or the edge of the grid, so try to use the natural features of space to your advantage. You can enter SpaceObjects into the grid when prompted, they will take the form "x, y, grid", where all three are integers. The first two are the coordinates of your location, and the third is which stage you would like the SpaceObject to be placed in. Make sure you have the spaces and commas just like the example, or it may not work.
 
 How to modify those default settings:
 
