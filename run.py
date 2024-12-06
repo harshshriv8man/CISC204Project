@@ -146,7 +146,7 @@ def example_theory():
 
     # Beacon cannot be on another beacon. -- This would already be covered with the beacons list.
     constraint.add_at_most_k(E, 6, beacons) # SAT Solver gets up to 6 Beacons to place across all 3 grids
-    print("added final constraint")
+    print("\nSAT Solver is loading...\n")
 
     return E
 

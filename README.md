@@ -21,6 +21,10 @@ We've also equipped the passengers of the previous mission with rocket-proof arm
 Good luck, Captain.
 People of Earth, signing off.
 
+Other:
+
+Constraints are added to decide where the Beacon can't go, then based on that, the SAT Solver will choose up to 6 (or however many you change it to) Beacons to be True (placed in the valid locations). It will not tell you how many people are saved, however based on the locations of the Beacons and the BEACON_RADIUS, it's simple enough to interpret.
+
 ## Structure
 
 * `documents`: Contains folders for both of your draft and final submissions. README.md files are included in both.
@@ -35,8 +39,10 @@ Instructions:
 
 When you run the program, it will print three stages containing the environment for each stage (grid).
 
-Green True means Planet (Later will also represent SpaceObjects), yellow False means checkpoint (The rocket must reach these in order to move on to the next stage),
+Green True means Planet (Later will also represent SpaceObjects and the Rocket), yellow False means checkpoint (The rocket must reach these in order to move on to the next stage),
 blue True means Person, and red False means empty space.
+
+A person will print over top of the rocket if the rocket moves through a person, so don't be afraid that the rocket disappears at some point along its journey!
 
 The rocket will start in stage 1 in (or 1 above in the case of even radii planets) the center of the planet, one column to the right.
 
@@ -44,7 +50,13 @@ The rocket can move through empty space, checkpoints and people. If the rocket i
 
 The rocket must reach the final column in stage 1 to continue; go through a checkpoint beneath the planet, then above the planet, and finally back to left column in stage 2; and reach the second last column to the right in stage 3 to succeed and have the SAT Solver begin solving.
 
-The object of the game is to save as many people stranded in space as you can before the rocket completes its journey. You can do this by moving the rocket close to the stranded people; it will place a beacon once its close enough, and all people within the beacon's radius will be saved. The rocket will automatically place the beacons in the most optimal place it can along its path, so it's up to you to get it there. You only get six beacons per game, so be strategic about where you place them! You can move the rocket by summoning SpaceObjects in front of the rocket, redirecting its path. The rocket will turn 90 degrees right whenever it runs into a SpaceObject, a planet, or the edge of the grid, so try to use the natural features of space to your advantage. You can enter SpaceObjects into the grid when prompted, they will take the form "x, y, grid", where all three are integers. The first two are the coordinates of your location, and the third is which stage you would like the SpaceObject to be placed in. Make sure you have the spaces and commas just like the example, or it may not work.
+The object of the game is to save as many people stranded in space as you can before the rocket completes its journey. You can do this by moving the rocket close to the stranded people; Beacons can only be placed within the radius of the rocket along its path (default is 1), and all people within the beacon's radius (default 1) will be saved.
+
+Remember, the SAT Solver can only place up to 6 Beacons as default, so it will randomly pick out of the valid locations you give it.
+
+You can move the rocket by summoning SpaceObjects in front of the rocket, redirecting its path. The rocket will turn 90 degrees right whenever it runs into a SpaceObject, a planet, or the edge of the grid, so try to use the natural features of space to your advantage.
+
+You can enter SpaceObjects into the grid when prompted, they will take the form "y, x, grid", where y, x, and grid are integers (grid can be 1, 2, or 3. y, x can be any integer within the range of the grid (< 2 * RADIUS, > -1)). The first two are the coordinates of your location, and the third is which stage you would like the SpaceObject to be placed in. Make sure you have the spaces and commas just like the example, or it may not work. Space Objects can only be placed on empty space that is not the starting position of the Rocket.
 
 How to modify those default settings:
 
@@ -56,3 +68,4 @@ How to modify those default settings:
    xxx
    Where x is the saving range and 0 is the Beacon.
 3. To increase or decrease the number of Beacons the SAT Solver can place, change constraint.add_at_most_k(E, 6, beacons) such that the 6 is the number of max Beacons you would like. Default is 6.
+4. Beacons don't show what grid they're on to begin with, since the compilation time of the SAT Solver took way too long on all of our computers when we added that. But if you would like to see that, and think your computer can handle it, on line 162 (last line in Beacon class), add ', {self.grid}' just to the right of '{self.y}, {self.x}'.
