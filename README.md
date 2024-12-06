@@ -35,7 +35,7 @@ The rocket can move through empty space, checkpoints and people. If the rocket i
 
 The rocket must reach the final column in stage 1 to continue; go through a checkpoint beneath the planet, then above the planet, and finally back to left column in stage 2; and reach the second last column to the right in stage 3 to succeed and have the SAT Solver begin solving.
 
-You can summon SpaceObjects to redirect
+The object of the game is to save as many people stranded in space as you can before the rocket completes its journey. You can do this by moving the rocket close to the stranded people; it will place a beacon once its close enough, and all people within the beacon's radius will be saved. The rocket will automatically place the beacon in the optimal place it can, so it's up to you to get it there. You only get six beacons per game, so be strategic about where you place them! You can move the rocket by summoning SpaceObjects in front of the rocket, redirecting its path. The rocket will turn 90 degrees right whenever it runs into a SpaceObject, a planet, or the edge of the grid, so try to use the natural features of space to your advantage. You can enter SpaceObjects into the grid when prompted, they will take the form "x, y, grid", where all three are integers. The first two are the coordinates of your location, and the third is which stage you would like the SpaceObject to be placed in. Make sure you have the spaces and commas just like the example, or it may not work. 
 
 Story:
 
