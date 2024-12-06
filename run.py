@@ -1,6 +1,7 @@
 
 from bauhaus import Encoding, proposition, constraint
 from bauhaus.utils import count_solutions, likelihood
+import sys
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
@@ -421,6 +422,7 @@ def rocket_stage_1(universe, radius, stage=1):
 
             if (x, y, direction) in visited_positions:  # Check if current position with direction is visited before
                 print("Unsolvable, no valid path for the Rocket in stage 1 (detected loop).")
+                sys.exit()
                 return journey  # If visited before, exit the function as it's unsolvable
             visited_positions.add((x, y, direction))  # Add the current position and direction to the visited set
 
@@ -501,6 +503,7 @@ def rocket_stage_2(universe, radius, stage=2):
 
         if (x, y) in visited_positions:  # Check if current position with direction is visited before
                 print("Unsolvable, no valid path for the Rocket in stage 1 (detected loop).")
+                sys.exit()
                 return journey  # If visited before, exit the function as it's unsolvable
         visited_positions.add((x, y))  # Add the current position and direction to the visited set
 
@@ -565,6 +568,7 @@ def rocket_stage_3(universe, radius, stage=3):
 
         if (x, y, direction) in visited_positions:  # Loop detection
             print("Unsolvable, no valid path for the Rocket in stage 3 (detected loop).")
+            sys.exit()
             return journey
         visited_positions.add((x, y, direction))
 
