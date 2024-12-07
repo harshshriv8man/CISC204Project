@@ -497,7 +497,6 @@ def rocket_stage_2(universe, radius, stage=2):
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=start_x, y=start_y)
 
     queue = PositionQueue(None, rocket.x, rocket.y, 1)  # Queue to track rocket's positions
-
     visited_positions = set()  # Set to track visited positions
     direction = 0  # Start by moving right (x++)
 
@@ -513,45 +512,31 @@ def rocket_stage_2(universe, radius, stage=2):
             sys.exit()  # Exit the program if we exceed the iteration limit
 
         x, y = get_position(rocket)
-
-        # Check if this position has already been visited before appending it
-        new_position = (rocket.y, rocket.x)
-        if new_position in visited_positions:
-            print("Unsolvable, no valid path for the Rocket in stage 2 (detected loop).")
-            break  # Stop the journey if a loop is detected
-        visited_positions.add(new_position)  # Mark current position as visited
-
-        # Check direction and move the rocket based on the current direction
+            # Move in the current direction
         if direction == 0:  # Move right (x++)
-            if x + 1 > int(radius * 2) - 1 or grid[y][x + 1].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving down
+            if x + 1 > int(radius * 2) - 1 or grid[y][x + 1].P:  # If next position in x is blocked or out of bounds
+                direction = (direction + 1) % 4  # Try the next direction (down)
             else:
                 move(rocket, 'x', 1)
 
         elif direction == 1:  # Move down (y++)
-            if y + 1 > int(radius * 2) - 1 or grid[y + 1][x].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving left
+            if y + 1 > int(radius * 2) - 1 or grid[y + 1][x].P:  # If next position in y is blocked or out of bounds
+                direction = (direction + 1) % 4  # Try the next direction (left)
             else:
                 move(rocket, 'y', 1)
 
         elif direction == 2:  # Move left (x--)
-            if x - 1 < 0 or grid[y][x - 1].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving up
+            if x - 1 < 0 or grid[y][x - 1].P:  # If next position in x is blocked or out of bounds
+                direction = (direction + 1) % 4  # Try the next direction (up)
             else:
                 move(rocket, 'x', -1)
 
         elif direction == 3:  # Move up (y--)
-            if y - 1 < 0 or grid[y - 1][x].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving right
+            if y - 1 < 0 or grid[y - 1][x].P:  # If next position in y is blocked or out of bounds
+                print(f"Blocked at: ({rocket.y}, {rocket.x})")
+                direction = (direction + 1) % 4  # Try the next direction (right)
             else:
                 move(rocket, 'y', -1)
-
-        # Remove the previous position from the visited set (queue-like behavior)
-        visited_positions.remove((y, x))  # Remove the old position from the set after moving
-
-        if (rocket.x, rocket.y) != (x, y):  # If the position has changed, update journey
-            queue = PositionQueue(queue, rocket.x, rocket.y, queue.len() + 1)  # Add current position to queue
-
         # Update the journey and grid visualization
         journey.append((rocket.y, rocket.x))  # Append (y, x)
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
@@ -634,31 +619,6 @@ def rocket_stage_3(universe, radius, stage=3):
 
         x, y = get_position(rocket)
 
-    if x == int(radius * 2) - 2:
-        if direction == 0:  # Move right (x++)
-            if x + 1 > int(radius * 2) - 1 or grid[y][x + 1].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving down
-            else:
-                move(rocket, 'x', 1)
-
-        elif direction == 1:  # Move down (y++)
-            if y + 1 > int(radius * 2) - 1 or grid[y + 1][x].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving left
-            else:
-                move(rocket, 'y', 1)
-
-        elif direction == 2:  # Move left (x--)
-            if x - 1 < 0 or grid[y][x - 1].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving up
-            else:
-                move(rocket, 'x', -1)
-
-        elif direction == 3:  # Move up (y--)
-            if y - 1 < 0 or grid[y - 1][x].P:  # Blocked or out of bounds
-                direction = (direction + 1) % 4  # Try moving right
-            else:
-                move(rocket, 'y', -1)
-        
     print(f"Stage:{stage}", end="\n")
 
     print("Journey Path: ", end="\n")
