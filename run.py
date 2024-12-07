@@ -490,6 +490,8 @@ def rocket_stage_2(universe, radius, stage=2):
     grid = universe[1]
     print(f"Stage: {stage}")
 
+    max_iterations = 15
+    iterations = 0
     # Initialize rocket at (0, radius + 1)
     start_x, start_y = 0, radius + 1
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=start_x, y=start_y)
@@ -506,6 +508,10 @@ def rocket_stage_2(universe, radius, stage=2):
 
     # Keep moving in a directional pattern: right → down → left → up
     while True:
+        if iterations >= max_iterations:
+            print("Unsolvable, too many iterations. Exiting...")
+            sys.exit()  # Exit the program if we exceed the iteration limit
+            
         x, y = get_position(rocket)
 
         # Check if this position has already been visited before appending it
@@ -544,13 +550,15 @@ def rocket_stage_2(universe, radius, stage=2):
         visited_positions.remove((y, x))  # Remove the old position from the set after moving
 
         if (rocket.x, rocket.y) != (x, y):  # If the position has changed, update journey
-                queue = PositionQueue(queue, rocket.x, rocket.y, queue.len() + 1)  # Add current position to queue
+            queue = PositionQueue(queue, rocket.x, rocket.y, queue.len() + 1)  # Add current position to queue
 
         # Update the journey and grid visualization
         journey.append((rocket.y, rocket.x))  # Append (y, x)
         add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
         grid[y][x].P = False  # Clear the previous rocket position
         debug_print(grid, stage)
+
+        iterations += 1
 
         # After completing a movement step, check if we have reached a valid destination or a stopping condition
         if rocket.x == 0 and rocket.y == 0:
@@ -564,8 +572,6 @@ def rocket_stage_2(universe, radius, stage=2):
     print("End of journey!")
 
     return journey
-
-
 
 
 def rocket_stage_3(universe, radius, stage=3):
