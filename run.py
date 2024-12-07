@@ -554,7 +554,6 @@ def rocket_stage_2(universe, radius, stage=2):
     print("Journey Path: ", end="\n")
     for step in journey:
         print(f"({step[0]}, {step[1]})", end=" -> ")
-    print("End of journey!")
 
     return journey
 
