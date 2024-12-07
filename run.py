@@ -484,65 +484,79 @@ def rocket_stage_1(universe, radius, stage=1):
     return journey
 
 def rocket_stage_2(universe, radius, stage=2):
+    # Call Stage 1 first for initial journey setup
     journey = rocket_stage_1(universe, radius, stage=1)
-    journey.append((-1,-1))
+    journey.append((-1, -1))  # Add separator between stages
     grid = universe[1]
     print(f"Stage: {stage}")
 
+    max_iterations = 1000
+    iterations = 0
+    # Initialize rocket at (0, radius + 1)
     start_x, start_y = 0, radius + 1
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=start_x, y=start_y)
 
-    visited_positions = set()
+    queue = PositionQueue(None, rocket.x, rocket.y, 1)  # Queue to track rocket's positions
+    visited_positions = set()  # Set to track visited positions
+    direction = 0  # Start by moving right (x++)
 
-    add_to_grid(grid,rocket.x,rocket.y,SpaceObject(rocket.x, rocket.y, grid, P=True))
-    journey.append(get_position(rocket))
-    debug_print(grid,stage)
+    # Add rocket to the grid and append to journey
+    add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
+    journey.append((rocket.y, rocket.x))  # Append (y, x) instead of (x, y)
+    debug_print(grid, stage)
 
-    while rocket.y > 0 :
+    # Keep moving in a directional pattern: right → down → left → up
+    while True:
+        if iterations >= max_iterations:
+            print("Unsolvable, too many iterations. Exiting...")
+            sys.exit()  # Exit the program if we exceed the iteration limit
+
         x, y = get_position(rocket)
+            # Move in the current direction
+        if direction == 0:  # Move right (x++)
+            if x + 1 > int(radius * 2) - 1 or grid[y][x + 1].P:  # If next position in x is blocked or out of bounds
+                direction = (direction + 1) % 4  # Try the next direction (down)
+            else:
+                move(rocket, 'x', 1)
 
-        if (x, y) in visited_positions:  # Check if current position with direction is visited before
-                print("Unsolvable, no valid path for the Rocket in stage 1 (detected loop).")
-                sys.exit()
-                return journey  # If visited before, exit the function as it's unsolvable
-        visited_positions.add((x, y))  # Add the current position and direction to the visited set
+        elif direction == 3:  # Move down (y++)
+            if y + 1 > int(radius * 2) - 1 or grid[y + 1][x].P:  # If next position in y is blocked or out of bounds
+                direction = (direction + 1) % 4  # Try the next direction (left)
+            else:
+                move(rocket, 'y', 1)
 
-        if rocket.x < radius + 1:
-            move(rocket, 'x', 1)
-        elif rocket.x == radius + 1:
-            if y > 0:
+        elif direction == 2:  # Move left (x--)
+            if x - 1 < 0 or grid[y][x - 1].P:  # If next position in x is blocked or out of bounds
+                direction = (direction + 1) % 4  # Try the next direction (up)
+            else:
+                move(rocket, 'x', -1)
+
+        elif direction == 1:  # Move up (y--)
+            if y - 1 < 0 or grid[y - 1][x].P:  # If next position in y is blocked or out of bounds
+                print(f"Blocked at: ({rocket.y}, {rocket.x})")
+                direction = (direction + 1) % 4  # Try the next direction (right)
+            else:
                 move(rocket, 'y', -1)
-        else:
-            move(rocket, 'x', -1)
-
-        journey.append(get_position(rocket))  # Update journey with new position
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid,P=True))  # Visualize rocket in grid
-        grid[y][x].P = False  # Clear previous rocket position
+        # Update the journey and grid visualization
+        journey.append((rocket.y, rocket.x))  # Append (y, x)
+        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))
+        grid[y][x].P = False  # Clear the previous rocket position
         debug_print(grid, stage)
 
-    while rocket.y == 0:
-        x, y = get_position(rocket)
-        move(rocket, 'x', -1)
+        iterations += 1
 
-        if rocket.x == 0 and rocket.y == 0:  # End condition, when we reach (0, 0)
-            journey.append(get_position(rocket))  # Update journey with new position
-            add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))  # Visualize rocket in grid
-            grid[y][x].P = False  # Clear previous rocket position
-            debug_print(grid, stage)
-            break
+        # After completing a movement step, check if we have reached a valid destination or a stopping condition
+        if rocket.x == 0 and rocket.y == 0:
+            break  # We can stop when we reach (0, 0)
 
-        journey.append(get_position(rocket))  # Update journey with new position
-        add_to_grid(grid, rocket.x, rocket.y, SpaceObject(rocket.x, rocket.y, grid, P=True))  # Visualize rocket in grid
-        grid[y][x].P = False  # Clear previous rocket position
-        debug_print(grid, stage)
-
-    print(f"Stage:{stage} Complete!")
+    # Final output
+    print(f"Stage {stage} Complete!")
     print("Journey Path: ", end="\n")
     for step in journey:
         print(f"({step[0]}, {step[1]})", end=" -> ")
-    print()
 
     return journey
+
 
 def rocket_stage_3(universe, radius, stage=3):
     # Call stage 2 and append the ending point as a placeholder for Stage 3
@@ -603,17 +617,6 @@ def rocket_stage_3(universe, radius, stage=3):
         debug_print(grid, stage)
 
         x, y = get_position(rocket)
-
-    if x == int(radius * 2) - 2:
-        # Check if all the positions in the next column are clear
-        all_clear = False
-        for i in range(len(checkpoint_positions_1)):
-            if checkpoint_positions_1[i] == grid[i][int(radius * 2) - 1].P:
-                all_clear = True
-                break
-
-        if all_clear:
-            print(f"Rocket reached the end of the journey at ({x}, {y})!", end="\n")
 
     print(f"Stage:{stage}", end="\n")
 
