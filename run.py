@@ -519,7 +519,7 @@ def rocket_stage_2(universe, radius, stage=2):
             else:
                 move(rocket, 'x', 1)
 
-        elif direction == 1:  # Move down (y++)
+        elif direction == 3:  # Move down (y++)
             if y + 1 > int(radius * 2) - 1 or grid[y + 1][x].P:  # If next position in y is blocked or out of bounds
                 direction = (direction + 1) % 4  # Try the next direction (left)
             else:
@@ -531,7 +531,7 @@ def rocket_stage_2(universe, radius, stage=2):
             else:
                 move(rocket, 'x', -1)
 
-        elif direction == 3:  # Move up (y--)
+        elif direction == 1:  # Move up (y--)
             if y - 1 < 0 or grid[y - 1][x].P:  # If next position in y is blocked or out of bounds
                 print(f"Blocked at: ({rocket.y}, {rocket.x})")
                 direction = (direction + 1) % 4  # Try the next direction (right)
