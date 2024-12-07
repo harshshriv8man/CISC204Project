@@ -494,6 +494,8 @@ def rocket_stage_2(universe, radius, stage=2):
     start_x, start_y = 0, radius + 1
     rocket = Rocket(checkpoint1=False, checkpoint2=False, checkpoint3=False, x=start_x, y=start_y)
 
+    queue = PositionQueue(None, rocket.x, rocket.y, 1)  # Queue to track rocket's positions
+
     visited_positions = set()  # Set to track visited positions
     direction = 0  # Start by moving right (x++)
 
@@ -540,6 +542,9 @@ def rocket_stage_2(universe, radius, stage=2):
 
         # Remove the previous position from the visited set (queue-like behavior)
         visited_positions.remove((y, x))  # Remove the old position from the set after moving
+
+        if (rocket.x, rocket.y) != (x, y):  # If the position has changed, update journey
+                queue = PositionQueue(queue, rocket.x, rocket.y, queue.len() + 1)  # Add current position to queue
 
         # Update the journey and grid visualization
         journey.append((rocket.y, rocket.x))  # Append (y, x)
