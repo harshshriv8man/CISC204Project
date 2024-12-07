@@ -490,7 +490,7 @@ def rocket_stage_2(universe, radius, stage=2):
     grid = universe[1]
     print(f"Stage: {stage}")
 
-    max_iterations = 15
+    max_iterations = 1000
     iterations = 0
     # Initialize rocket at (0, radius + 1)
     start_x, start_y = 0, radius + 1
@@ -511,7 +511,7 @@ def rocket_stage_2(universe, radius, stage=2):
         if iterations >= max_iterations:
             print("Unsolvable, too many iterations. Exiting...")
             sys.exit()  # Exit the program if we exceed the iteration limit
-            
+
         x, y = get_position(rocket)
 
         # Check if this position has already been visited before appending it
